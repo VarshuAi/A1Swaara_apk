@@ -4,7 +4,7 @@
   "minRequiredVersion": "1.0.0",
   "forceUpdate": true,
   "title": "A1 Swaara v1.0.0 Official Release",
-  "changelog": "- Official Launch of A1 Swaara with cinematic dark UI\n- High-Speed 320 kbps Stream Downloader\n- Story Creator Studio (Instagram/WhatsApp Story Cards and 30s/60s Video)\n- Multi-language discovery and synchronized lyrics",
+  "changelog": "- Official Launch of A1 Swaara with cinematic dark UI\n- High-Speed 320 kbps Stream Downloader\n- Story Creator Studio (Instagram/WhatsApp Story Cards & 30s/60s Video)\n- Multi-language discovery & synchronized lyrics",
   "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.0.apk",
   "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.0"
 }
