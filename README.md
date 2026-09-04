@@ -1,3 +1,4 @@
+<!-- VARSHUAI-REDESIGN-v2 -->
 # ⚡ A1Swaara Apk
 
 > **A high-performance software utility engineered by VarshuAi.**  
