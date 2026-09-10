@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Spotify Desktop Master Theme Tokens */
+    --sp-bg-black: #000000;
+    --sp-bg-base: #121212;
+    --sp-bg-elevated: #181818;
+    --sp-bg-highlight: #242424;
+    --sp-bg-press: #000000;
+    --sp-bg-card-hover: #282828;
+
+    --sp-green: #1ED760;
+    --sp-green-hover: #1FDF64;
+    --sp-green-dark: #169c46;
+
+    --sp-text-base: #FFFFFF;
+    --sp-text-subdued: #B3B3B3;
+    --sp-text-bright: #FFFFFF;
+    --sp-text-muted: #6A6A6A;
+
+    --sp-border-subtle: rgba(255, 255, 255, 0.08);
+    --sp-border-light: rgba(255, 255, 255, 0.15);
+
+    --sp-card-radius: 6px;
+    --sp-button-radius: 500px;
+  }
+
+  body {
+    background-color: var(--sp-bg-black);
+    color: var(--sp-text-base);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    user-select: none;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Electron Draggable Header Regions */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Spotify Floating Play Button Hover Effect */
+.spotify-play-btn {
+  background-color: #1ED760;
+  color: #000000;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s cubic-bezier(0.3, 0, 0, 1);
+}
+
+.spotify-play-btn:hover {
+  background-color: #1FDF64;
+  transform: scale(1.06);
+}
+
+.spotify-play-btn:active {
+  transform: scale(0.98);
+}
+
+/* Spotify Card Surface */
+.spotify-card {
+  background-color: #181818;
+  border-radius: 6px;
+  transition: background-color 0.25s ease;
+}
+
+.spotify-card:hover {
+  background-color: #242424;
+}
+
+/* Custom Minimalist Spotify Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Range input styling for Spotify Player Bar */
+input[type="range"] {
+  accent-color: #1ED760;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  transition: transform 0.1s ease;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+/* Spin animations */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 14s linear infinite;
+}
