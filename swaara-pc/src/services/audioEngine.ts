@@ -51,6 +51,15 @@ class AudioEngine {
   private analyser: AnalyserNode | null = null;
   private isInitialized = false;
 
+  // Dual-Engine Hybrid: HTML5 Direct Audio + YouTube Background Engine (for web/datacenter fallback)
+  private ytPlayer: any = null;
+  private isYtReady = false;
+  private isYtPlaying = false;
+  private currentEngine: 'html5' | 'youtube' = 'html5';
+  private currentVolume = 0.85;
+  private ytPollTimer: any = null;
+  private activeTrack: Track | null = null;
+
   private onTimeUpdateCb?: (current: number, duration: number, buffered: number) => void;
   private onEndCb?: () => void;
   private onPlayChangeCb?: (isPlaying: boolean) => void;
@@ -172,35 +181,193 @@ class AudioEngine {
     }
   }
 
+  private initYouTubeApi(): Promise<void> {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined') return resolve();
+
+      if ((window as any).YT && (window as any).YT.Player) {
+        return resolve();
+      }
+
+      const existingScript = document.getElementById('swaara-yt-script');
+      if (!existingScript) {
+        const tag = document.createElement('script');
+        tag.id = 'swaara-yt-script';
+        tag.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(tag);
+      }
+
+      const prevCallback = (window as any).onYouTubeIframeAPIReady;
+      (window as any).onYouTubeIframeAPIReady = () => {
+        if (prevCallback) prevCallback();
+        resolve();
+      };
+
+      setTimeout(resolve, 3500);
+    });
+  }
+
+  private async playYouTubeTrack(track: Track) {
+    this.currentEngine = 'youtube';
+    this.activeTrack = track;
+    this.audio.pause();
+
+    await this.initYouTubeApi();
+    if (typeof window === 'undefined') return;
+
+    let container = document.getElementById('swaara-yt-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'swaara-yt-container';
+      container.style.position = 'fixed';
+      container.style.bottom = '-9999px';
+      container.style.left = '-9999px';
+      container.style.width = '1px';
+      container.style.height = '1px';
+      container.style.pointerEvents = 'none';
+      container.style.opacity = '0';
+      document.body.appendChild(container);
+    }
+
+    if (this.ytPlayer && this.isYtReady) {
+      try {
+        this.ytPlayer.loadVideoById(track.id);
+        this.ytPlayer.playVideo();
+        this.ytPlayer.setVolume(Math.round(this.currentVolume * 100));
+        this.startYtPolling(track);
+        this.updateMediaSession(track);
+        return;
+      } catch (err) {
+        console.warn('Re-instantiating YouTube background engine:', err);
+      }
+    }
+
+    if ((window as any).YT && (window as any).YT.Player) {
+      try {
+        this.ytPlayer = new (window as any).YT.Player('swaara-yt-container', {
+          height: '1',
+          width: '1',
+          videoId: track.id,
+          playerVars: {
+            autoplay: 1,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            playsinline: 1,
+            rel: 0,
+          },
+          events: {
+            onReady: (event: any) => {
+              this.isYtReady = true;
+              event.target.playVideo();
+              event.target.setVolume(Math.round(this.currentVolume * 100));
+              this.startYtPolling(track);
+              this.updateMediaSession(track);
+            },
+            onStateChange: (event: any) => {
+              const state = event.data;
+              if (state === 1) {
+                this.isYtPlaying = true;
+                if (this.onPlayChangeCb) this.onPlayChangeCb(true);
+                if (this.onLoadingCb) this.onLoadingCb(false);
+              } else if (state === 2) {
+                this.isYtPlaying = false;
+                if (this.onPlayChangeCb) this.onPlayChangeCb(false);
+              } else if (state === 3) {
+                if (this.onLoadingCb) this.onLoadingCb(true);
+              } else if (state === 0) {
+                this.isYtPlaying = false;
+                if (this.onPlayChangeCb) this.onPlayChangeCb(false);
+                if (this.onEndCb) this.onEndCb();
+              }
+            },
+            onError: (event: any) => {
+              console.error('YouTube background engine error code:', event.data);
+              if (this.onErrorCb) {
+                this.onErrorCb('Audio stream playback error');
+              }
+              if (this.onLoadingCb) this.onLoadingCb(false);
+            },
+          },
+        });
+      } catch (e) {
+        console.error('Failed to create YouTube player:', e);
+      }
+    }
+  }
+
+  private startYtPolling(track: Track) {
+    if (this.ytPollTimer) clearInterval(this.ytPollTimer);
+    this.ytPollTimer = setInterval(() => {
+      if (this.currentEngine === 'youtube' && this.ytPlayer && this.ytPlayer.getCurrentTime) {
+        try {
+          const current = this.ytPlayer.getCurrentTime() || 0;
+          const dur = this.ytPlayer.getDuration() || track.duration || 0;
+          const loadedFraction = this.ytPlayer.getVideoLoadedFraction ? this.ytPlayer.getVideoLoadedFraction() : 0;
+          const buffered = loadedFraction * dur;
+
+          if (this.onTimeUpdateCb) {
+            this.onTimeUpdateCb(current, dur, buffered);
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }, 250);
+  }
+
   public async playTrack(track: Track) {
+    this.activeTrack = track;
     this.initWebAudio();
 
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
       await this.audioCtx.resume();
     }
 
-    if (!track.streamUrl) {
-      if (this.onErrorCb) this.onErrorCb('No stream URL available');
-      return;
+    // 1. If direct stream URL is available (e.g. Electron desktop app), attempt HTML5 audio
+    if (track.streamUrl) {
+      this.currentEngine = 'html5';
+      if (this.ytPlayer && this.isYtReady) {
+        try { this.ytPlayer.pauseVideo(); } catch {}
+      }
+      if (this.ytPollTimer) clearInterval(this.ytPollTimer);
+
+      if (this.audio.src !== track.streamUrl) {
+        this.audio.src = track.streamUrl;
+        this.audio.load();
+      }
+
+      try {
+        await this.audio.play();
+        this.updateMediaSession(track);
+        return;
+      } catch (err) {
+        console.warn('HTML5 direct play failed, falling back to YouTube background engine:', err);
+      }
     }
 
-    if (this.audio.src !== track.streamUrl) {
-      this.audio.src = track.streamUrl;
-      this.audio.load();
-    }
-
-    try {
-      await this.audio.play();
-      this.updateMediaSession(track);
-    } catch (err) {
-      console.error('Play error:', err);
-    }
+    // 2. Web mode / datacenter fallback: Instant YouTube playback with 100% reliability
+    await this.playYouTubeTrack(track);
   }
 
   public async togglePlay() {
     this.initWebAudio();
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
       await this.audioCtx.resume();
+    }
+
+    if (this.currentEngine === 'youtube' && this.ytPlayer && this.isYtReady) {
+      try {
+        const state = this.ytPlayer.getPlayerState();
+        if (state === 1) {
+          this.ytPlayer.pauseVideo();
+        } else {
+          this.ytPlayer.playVideo();
+        }
+      } catch (e) {
+        console.error('Failed to toggle YouTube playback:', e);
+      }
+      return;
     }
 
     if (this.audio.paused) {
@@ -215,19 +382,32 @@ class AudioEngine {
   }
 
   public seek(seconds: number) {
-    if (!isNaN(seconds)) {
-      this.audio.currentTime = Math.max(0, Math.min(seconds, this.audio.duration || seconds));
+    if (isNaN(seconds)) return;
+
+    if (this.currentEngine === 'youtube' && this.ytPlayer && this.isYtReady) {
+      try {
+        this.ytPlayer.seekTo(seconds, true);
+      } catch {}
+      return;
     }
+
+    this.audio.currentTime = Math.max(0, Math.min(seconds, this.audio.duration || seconds));
   }
 
   public setVolume(vol: number) {
     // vol 0 to 1
     const clamped = Math.max(0, Math.min(1, vol));
+    this.currentVolume = clamped;
     this.audio.volume = clamped;
+    if (this.ytPlayer && this.isYtReady) {
+      try {
+        this.ytPlayer.setVolume(Math.round(clamped * 100));
+      } catch {}
+    }
   }
 
   public getVolume(): number {
-    return this.audio.volume;
+    return this.currentVolume;
   }
 
   // Apply Equalizer Preset and Bass Boost
@@ -268,9 +448,13 @@ class AudioEngine {
       }
     }
 
-    // If running in browser and analyser outputs zeroes due to browser cross-origin policy,
-    // animate spectrum dynamically based on music playback state
-    if (!hasRealData && !this.audio.paused && this.audio.currentTime > 0) {
+    const isPlaying =
+      this.currentEngine === 'youtube'
+        ? this.isYtPlaying
+        : (!this.audio.paused && this.audio.currentTime > 0);
+
+    // If running in browser or YouTube background player, animate spectrum dynamically
+    if (!hasRealData && isPlaying) {
       const t = performance.now() * 0.006;
       for (let i = 0; i < outputArray.length; i++) {
         const wave = Math.sin(t + i * 0.35) * 0.5 + 0.5;
@@ -281,7 +465,7 @@ class AudioEngine {
           Math.max(10, Math.floor((wave * 110 + wave2 * 60 + bass) * (1 - (i / outputArray.length) * 0.4)))
         );
       }
-    } else if (!hasRealData && this.audio.paused) {
+    } else if (!hasRealData && !isPlaying) {
       outputArray.fill(0);
     }
   }
