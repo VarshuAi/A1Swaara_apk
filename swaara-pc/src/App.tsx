@@ -114,27 +114,35 @@ export function App() {
     setIsLoading(true);
     setCurrentTrack(track);
 
+    // In a browser (Vercel / web), start playing track IMMEDIATELY on user click
+    // to guarantee user activation is preserved and avoid any browser autoplay block!
+    const isWeb = typeof window !== 'undefined' && !(window as any).electronAPI?.isElectron;
+    if (isWeb) {
+      audioEngine.playTrack(track);
+    }
+
     try {
-      // 1. Resolve 320 kbps stream URL
+      // In Electron or background: attempt resolving high-fidelity 320 kbps stream URL
       const resolved = await resolveTrackStream(track);
       setCurrentTrack(resolved);
 
-      // 2. Play through audio engine
-      await audioEngine.playTrack(resolved);
+      // In Electron, or if direct stream URL was newly extracted, play via direct engine
+      if (!isWeb || resolved.streamUrl) {
+        await audioEngine.playTrack(resolved);
+      }
       setIsLoading(false);
 
-      // 3. Save to history
+      // Save to history
       storage.addToHistory(resolved);
       setHistorySongs(storage.getHistory());
 
-      // 4. Fetch lyrics
+      // Fetch lyrics
       fetchLyrics(resolved.id).then((lyr) => {
         setLyrics(lyr);
       });
     } catch (err) {
       console.error('Track playback failure:', err);
       setIsLoading(false);
-      showToast('Error resolving high-fidelity stream');
     }
   }, []);
 

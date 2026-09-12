@@ -53,6 +53,7 @@ class AudioEngine {
 
   // Dual-Engine Hybrid: HTML5 Direct Audio + YouTube Background Engine (for web/datacenter fallback)
   private ytPlayer: any = null;
+  private ytPlayerPromise: Promise<any> | null = null;
   private isYtReady = false;
   private isYtPlaying = false;
   private currentEngine: 'html5' | 'youtube' = 'html5';
@@ -203,22 +204,28 @@ class AudioEngine {
         resolve();
       };
 
-      setTimeout(resolve, 3500);
+      setTimeout(resolve, 3000);
     });
   }
 
-  private async playYouTubeTrack(track: Track) {
-    this.currentEngine = 'youtube';
-    this.activeTrack = track;
-    this.audio.pause();
+  private async ensureYouTubePlayer(): Promise<any> {
+    if (this.ytPlayer && typeof this.ytPlayer.loadVideoById === 'function') {
+      return this.ytPlayer;
+    }
+    if (this.ytPlayerPromise) {
+      return this.ytPlayerPromise;
+    }
 
-    await this.initYouTubeApi();
-    if (typeof window === 'undefined') return;
+    this.ytPlayerPromise = new Promise(async (resolve) => {
+      await this.initYouTubeApi();
+      if (typeof window === 'undefined') return resolve(null);
 
-    let container = document.getElementById('swaara-yt-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'swaara-yt-container';
+      // Clean up any stale container
+      const existing = document.getElementById('swaara-yt-player-box');
+      if (existing) existing.remove();
+
+      const container = document.createElement('div');
+      container.id = 'swaara-yt-player-box';
       container.style.position = 'fixed';
       container.style.bottom = '-9999px';
       container.style.left = '-9999px';
@@ -227,27 +234,11 @@ class AudioEngine {
       container.style.pointerEvents = 'none';
       container.style.opacity = '0';
       document.body.appendChild(container);
-    }
 
-    if (this.ytPlayer && this.isYtReady) {
       try {
-        this.ytPlayer.loadVideoById(track.id);
-        this.ytPlayer.playVideo();
-        this.ytPlayer.setVolume(Math.round(this.currentVolume * 100));
-        this.startYtPolling(track);
-        this.updateMediaSession(track);
-        return;
-      } catch (err) {
-        console.warn('Re-instantiating YouTube background engine:', err);
-      }
-    }
-
-    if ((window as any).YT && (window as any).YT.Player) {
-      try {
-        this.ytPlayer = new (window as any).YT.Player('swaara-yt-container', {
+        const player = new (window as any).YT.Player('swaara-yt-player-box', {
           height: '1',
           width: '1',
-          videoId: track.id,
           playerVars: {
             autoplay: 1,
             controls: 0,
@@ -258,31 +249,32 @@ class AudioEngine {
           },
           events: {
             onReady: (event: any) => {
+              this.ytPlayer = event.target;
               this.isYtReady = true;
-              event.target.playVideo();
-              event.target.setVolume(Math.round(this.currentVolume * 100));
-              this.startYtPolling(track);
-              this.updateMediaSession(track);
+              try {
+                this.ytPlayer.setVolume(Math.round(this.currentVolume * 100));
+              } catch {}
+              resolve(this.ytPlayer);
             },
             onStateChange: (event: any) => {
               const state = event.data;
-              if (state === 1) {
+              if (state === 1) { // playing
                 this.isYtPlaying = true;
                 if (this.onPlayChangeCb) this.onPlayChangeCb(true);
                 if (this.onLoadingCb) this.onLoadingCb(false);
-              } else if (state === 2) {
+              } else if (state === 2) { // paused
                 this.isYtPlaying = false;
                 if (this.onPlayChangeCb) this.onPlayChangeCb(false);
-              } else if (state === 3) {
+              } else if (state === 3) { // buffering
                 if (this.onLoadingCb) this.onLoadingCb(true);
-              } else if (state === 0) {
+              } else if (state === 0) { // ended
                 this.isYtPlaying = false;
                 if (this.onPlayChangeCb) this.onPlayChangeCb(false);
                 if (this.onEndCb) this.onEndCb();
               }
             },
             onError: (event: any) => {
-              console.error('YouTube background engine error code:', event.data);
+              console.error('YouTube background engine playback error:', event.data);
               if (this.onErrorCb) {
                 this.onErrorCb('Audio stream playback error');
               }
@@ -290,16 +282,39 @@ class AudioEngine {
             },
           },
         });
-      } catch (e) {
-        console.error('Failed to create YouTube player:', e);
+      } catch (err) {
+        console.error('Failed to instantiate YouTube player:', err);
+        this.ytPlayerPromise = null;
+        resolve(null);
       }
+    });
+
+    return this.ytPlayerPromise;
+  }
+
+  private async playYouTubeTrack(track: Track) {
+    this.currentEngine = 'youtube';
+    this.activeTrack = track;
+    this.audio.pause();
+
+    const player = await this.ensureYouTubePlayer();
+    if (!player) return;
+
+    try {
+      player.loadVideoById(track.id);
+      player.playVideo();
+      player.setVolume(Math.round(this.currentVolume * 100));
+      this.startYtPolling(track);
+      this.updateMediaSession(track);
+    } catch (err) {
+      console.error('Error invoking YouTube track playback:', err);
     }
   }
 
   private startYtPolling(track: Track) {
     if (this.ytPollTimer) clearInterval(this.ytPollTimer);
     this.ytPollTimer = setInterval(() => {
-      if (this.currentEngine === 'youtube' && this.ytPlayer && this.ytPlayer.getCurrentTime) {
+      if (this.currentEngine === 'youtube' && this.ytPlayer && typeof this.ytPlayer.getCurrentTime === 'function') {
         try {
           const current = this.ytPlayer.getCurrentTime() || 0;
           const dur = this.ytPlayer.getDuration() || track.duration || 0;
@@ -327,7 +342,7 @@ class AudioEngine {
     // 1. If direct stream URL is available (e.g. Electron desktop app), attempt HTML5 audio
     if (track.streamUrl) {
       this.currentEngine = 'html5';
-      if (this.ytPlayer && this.isYtReady) {
+      if (this.ytPlayer && typeof this.ytPlayer.pauseVideo === 'function') {
         try { this.ytPlayer.pauseVideo(); } catch {}
       }
       if (this.ytPollTimer) clearInterval(this.ytPollTimer);
