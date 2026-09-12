@@ -47,6 +47,7 @@ interface PlayerBarProps {
   onExpandNowPlaying: () => void;
   onDownloadTrack: (track: Track) => void;
   onToggleInsights?: () => void;
+  onOpenArtist?: (artistName: string) => void;
   isLyricsActive?: boolean;
   isInsightsActive?: boolean;
   isQueueActive?: boolean;
@@ -86,6 +87,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
   onExpandNowPlaying,
   onDownloadTrack,
   onToggleInsights,
+  onOpenArtist,
   isLyricsActive = false,
   isInsightsActive = false,
   isQueueActive = false,
@@ -137,7 +139,10 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
               >
                 {currentTrack.title}
               </p>
-              <p className="text-xs text-[#B3B3B3] hover:underline hover:text-white cursor-pointer truncate mt-0.5">
+              <p
+                onClick={() => onOpenArtist && currentTrack.artist && onOpenArtist(currentTrack.artist)}
+                className="text-xs text-[#B3B3B3] hover:underline hover:text-white cursor-pointer truncate mt-0.5"
+              >
                 {currentTrack.artist}
               </p>
             </div>

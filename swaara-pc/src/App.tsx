@@ -11,6 +11,7 @@ import { StoryCreatorModal } from './components/StoryCreatorModal';
 import { QueueDrawer } from './components/QueueDrawer';
 import { MiniPlayer } from './components/MiniPlayer';
 import { SongInsightsDrawer } from './components/SongInsightsDrawer';
+import { ArtistView } from './components/ArtistView';
 import { Track, ActiveTab, SyncedLyricLine } from './types/music';
 import { resolveTrackStream, fetchLyrics } from './services/api';
 import { audioEngine, DEFAULT_PRESETS } from './services/audioEngine';
@@ -19,6 +20,12 @@ import { CheckCircle2, Download } from 'lucide-react';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('discover');
+  const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
+  const [navHistory, setNavHistory] = useState<{ tab: ActiveTab; artist?: string | null }[]>([
+    { tab: 'discover' },
+  ]);
+  const [navIndex, setNavIndex] = useState<number>(0);
+
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -65,6 +72,42 @@ export function App() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
+
+  const navigateTo = useCallback((tab: ActiveTab, artist?: string | null) => {
+    setActiveTab(tab);
+    if (artist !== undefined) {
+      setSelectedArtist(artist);
+    }
+    setNavHistory((prev) => {
+      const next = prev.slice(0, navIndex + 1);
+      return [...next, { tab, artist: artist ?? null }];
+    });
+    setNavIndex((prev) => prev + 1);
+  }, [navIndex]);
+
+  const handleGoBack = useCallback(() => {
+    if (navIndex > 0) {
+      const prevItem = navHistory[navIndex - 1];
+      setNavIndex((i) => i - 1);
+      setActiveTab(prevItem.tab);
+      setSelectedArtist(prevItem.artist || null);
+    }
+  }, [navIndex, navHistory]);
+
+  const handleGoForward = useCallback(() => {
+    if (navIndex < navHistory.length - 1) {
+      const nextItem = navHistory[navIndex + 1];
+      setNavIndex((i) => i + 1);
+      setActiveTab(nextItem.tab);
+      setSelectedArtist(nextItem.artist || null);
+    }
+  }, [navIndex, navHistory]);
+
+  const handleOpenArtist = useCallback((artistNameOrChannelId: string) => {
+    setSelectedArtist(artistNameOrChannelId);
+    setIsNowPlayingOpen(false);
+    navigateTo('artist', artistNameOrChannelId);
+  }, [navigateTo]);
 
   // Play a specific track
   const handlePlayTrack = useCallback(async (track: Track) => {
@@ -322,7 +365,7 @@ export function App() {
   };
 
   // Batch Play All
-  const handlePlayAll = (tracks: Track[], shuffle: boolean) => {
+  const handlePlayAll = (tracks: Track[], shuffle: boolean = false) => {
     if (tracks.length === 0) return;
     const list = shuffle ? [...tracks].sort(() => Math.random() - 0.5) : [...tracks];
     const first = list[0];
@@ -365,9 +408,13 @@ export function App() {
         onToggleMiniPlayer={handleToggleMiniPlayer}
         isMiniPlayer={isMiniPlayer}
         onOpenSearch={() => {
-          setActiveTab('search');
+          navigateTo('search', null);
           setIsNowPlayingOpen(false);
         }}
+        onNavigateBack={handleGoBack}
+        onNavigateForward={handleGoForward}
+        canGoBack={navIndex > 0}
+        canGoForward={navIndex < navHistory.length - 1}
       />
 
       {/* Main Center Layout (Spotify 2-Tier Master Grid) */}
@@ -376,7 +423,7 @@ export function App() {
         <Sidebar
           activeTab={activeTab}
           onSelectTab={(tab) => {
-            setActiveTab(tab);
+            navigateTo(tab, null);
             setIsNowPlayingOpen(false);
           }}
           onOpenEqualizer={() => setIsEqualizerOpen(true)}
@@ -403,6 +450,18 @@ export function App() {
               lyrics={lyrics}
               onSeek={(t) => audioEngine.seek(t)}
             />
+          ) : activeTab === 'artist' && selectedArtist ? (
+            <ArtistView
+              artistIdOrName={selectedArtist}
+              onPlayTrack={handlePlayTrack}
+              onPlayAll={handlePlayAll}
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              onToggleLike={handleToggleLike}
+              likedSongIds={likedSongIds}
+              onDownloadTrack={handleDownloadTrack}
+              onBack={handleGoBack}
+            />
           ) : activeTab === 'discover' ? (
             <DiscoverView
               onPlayTrack={handlePlayTrack}
@@ -411,6 +470,7 @@ export function App() {
               onToggleLike={handleToggleLike}
               likedSongIds={likedSongIds}
               onDownloadTrack={handleDownloadTrack}
+              onOpenArtist={handleOpenArtist}
             />
           ) : activeTab === 'search' ? (
             <SearchView
@@ -421,6 +481,7 @@ export function App() {
               onToggleLike={handleToggleLike}
               likedSongIds={likedSongIds}
               onDownloadTrack={handleDownloadTrack}
+              onOpenArtist={handleOpenArtist}
             />
           ) : (
             <LibraryView
@@ -442,6 +503,7 @@ export function App() {
           onClose={() => setIsInsightsOpen(false)}
           track={currentTrack}
           onPlayTrack={handlePlayTrack}
+          onOpenArtist={handleOpenArtist}
         />
 
         {/* Up Next Queue Slide-over */}
@@ -495,6 +557,7 @@ export function App() {
         onToggleFullscreen={handleToggleFullscreen}
         onExpandNowPlaying={() => setIsNowPlayingOpen(true)}
         onDownloadTrack={handleDownloadTrack}
+        onOpenArtist={handleOpenArtist}
         isLyricsActive={isNowPlayingOpen}
         isInsightsActive={isInsightsOpen}
         isQueueActive={isQueueOpen}

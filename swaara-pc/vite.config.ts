@@ -19,6 +19,9 @@ export default defineConfig({
         headers: {
           Origin: 'https://www.youtube.com',
           Referer: 'https://www.youtube.com/',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          Cookie: 'SOCS=CAESEwgDEgk2OTc3NjExMDUaAmVuIAEaBgiA_K-0Bg; CONSENT=PENDING+999',
         },
       },
       '/yti-api': {
@@ -29,6 +32,9 @@ export default defineConfig({
         headers: {
           Origin: 'https://www.youtube.com',
           Referer: 'https://www.youtube.com/',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          Cookie: 'SOCS=CAESEwgDEgk2OTc3NjExMDUaAmVuIAEaBgiA_K-0Bg; CONSENT=PENDING+999',
         },
       },
     },

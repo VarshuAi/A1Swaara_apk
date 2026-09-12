@@ -55,7 +55,20 @@ export interface Playlist {
   createdAt: number;
 }
 
-export type ActiveTab = 'discover' | 'search' | 'library' | 'liked' | 'downloads';
+export interface ArtistDetails {
+  id: string;
+  name: string;
+  handle?: string;
+  avatarUrl?: string;
+  bannerUrl?: string;
+  subscriberCountText?: string;
+  verified: boolean;
+  description?: string;
+  topTracks: Track[];
+  latestReleases: Track[];
+}
+
+export type ActiveTab = 'discover' | 'search' | 'library' | 'liked' | 'downloads' | 'artist';
 
 export interface ElectronAPI {
   isElectron: boolean;

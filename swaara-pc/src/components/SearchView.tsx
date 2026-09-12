@@ -23,6 +23,7 @@ interface SearchViewProps {
   onToggleLike: (track: Track) => void;
   likedSongIds: Set<string>;
   onDownloadTrack: (track: Track) => void;
+  onOpenArtist?: (artistName: string) => void;
 }
 
 function formatDuration(secs: number): string {
@@ -51,6 +52,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
   onToggleLike,
   likedSongIds,
   onDownloadTrack,
+  onOpenArtist,
 }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Track[]>([]);
@@ -133,7 +135,19 @@ export const SearchView: React.FC<SearchViewProps> = ({
                       {topResult.title}
                     </h4>
                     <p className="text-sm text-[#B3B3B3] truncate mt-1">
-                      <span className="font-semibold text-white">{topResult.artist}</span>
+                      <span
+                        onClick={(e) => {
+                          if (onOpenArtist && topResult.artist) {
+                            e.stopPropagation();
+                            onOpenArtist(topResult.artist);
+                          }
+                        }}
+                        className={`font-semibold text-white ${
+                          onOpenArtist ? 'hover:underline cursor-pointer' : ''
+                        }`}
+                      >
+                        {topResult.artist}
+                      </span>
                       <span className="mx-2">•</span>
                       <span className="px-2 py-0.5 rounded-full bg-black/40 text-[10px] font-bold text-white">
                         Song
@@ -182,7 +196,17 @@ export const SearchView: React.FC<SearchViewProps> = ({
                             }`}>
                               {track.title}
                             </p>
-                            <p className="text-xs text-[#B3B3B3] truncate mt-0.5">
+                            <p
+                              onClick={(e) => {
+                                if (onOpenArtist && track.artist) {
+                                  e.stopPropagation();
+                                  onOpenArtist(track.artist);
+                                }
+                              }}
+                              className={`text-xs text-[#B3B3B3] truncate mt-0.5 ${
+                                onOpenArtist ? 'hover:underline hover:text-white cursor-pointer' : ''
+                              }`}
+                            >
                               {track.artist}
                             </p>
                           </div>
@@ -251,7 +275,17 @@ export const SearchView: React.FC<SearchViewProps> = ({
                           }`}>
                             {track.title}
                           </p>
-                          <p className="text-xs text-[#B3B3B3] truncate mt-0.5">
+                          <p
+                            onClick={(e) => {
+                              if (onOpenArtist && track.artist) {
+                                e.stopPropagation();
+                                onOpenArtist(track.artist);
+                              }
+                            }}
+                            className={`text-xs text-[#B3B3B3] truncate mt-0.5 ${
+                              onOpenArtist ? 'hover:underline hover:text-white cursor-pointer' : ''
+                            }`}
+                          >
                             {track.artist}
                           </p>
                         </div>

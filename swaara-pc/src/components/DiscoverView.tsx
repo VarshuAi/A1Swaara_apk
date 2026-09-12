@@ -23,6 +23,7 @@ interface DiscoverViewProps {
   onToggleLike: (track: Track) => void;
   likedSongIds: Set<string>;
   onDownloadTrack: (track: Track) => void;
+  onOpenArtist?: (artistName: string) => void;
 }
 
 const POPULAR_ARTISTS = [
@@ -71,6 +72,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
   onToggleLike,
   likedSongIds,
   onDownloadTrack,
+  onOpenArtist,
 }) => {
   const [selectedMatrix, setSelectedMatrix] = useState(LANGUAGE_MATRICES[0]);
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -250,7 +252,17 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                     }`}>
                       {track.title}
                     </h3>
-                    <p className="text-xs text-[#B3B3B3] truncate mt-1">
+                    <p
+                      onClick={(e) => {
+                        if (onOpenArtist && track.artist) {
+                          e.stopPropagation();
+                          onOpenArtist(track.artist);
+                        }
+                      }}
+                      className={`text-xs text-[#B3B3B3] truncate mt-1 ${
+                        onOpenArtist ? 'hover:underline hover:text-white cursor-pointer' : ''
+                      }`}
+                    >
                       {track.artist}
                     </p>
                   </div>
@@ -279,12 +291,16 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
             <div
               key={artist.name}
               onClick={() => {
-                setSelectedMatrix({
-                  id: 'custom',
-                  name: artist.name,
-                  script: 'Hits',
-                  query: artist.query,
-                });
+                if (onOpenArtist) {
+                  onOpenArtist(artist.name);
+                } else {
+                  setSelectedMatrix({
+                    id: 'custom',
+                    name: artist.name,
+                    script: 'Hits',
+                    query: artist.query,
+                  });
+                }
               }}
               className="p-3.5 rounded-md bg-[#181818] hover:bg-[#282828] transition-all duration-200 cursor-pointer group flex flex-col items-center text-center shadow"
             >

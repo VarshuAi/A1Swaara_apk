@@ -15,13 +15,14 @@ import {
   Music,
 } from 'lucide-react';
 import { Track, SongInsights } from '../types/music';
-import { fetchSongInsights } from '../services/api';
+import { fetchSongInsights, fetchArtistProfile } from '../services/api';
 
 interface SongInsightsDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   track: Track | null;
   onPlayTrack: (track: Track) => void;
+  onOpenArtist?: (artistName: string) => void;
 }
 
 export const SongInsightsDrawer: React.FC<SongInsightsDrawerProps> = ({
@@ -29,8 +30,10 @@ export const SongInsightsDrawer: React.FC<SongInsightsDrawerProps> = ({
   onClose,
   track,
   onPlayTrack,
+  onOpenArtist,
 }) => {
   const [insights, setInsights] = useState<SongInsights | null>(null);
+  const [channelDetails, setChannelDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'comments' | 'related'>('overview');
 
@@ -40,10 +43,18 @@ export const SongInsightsDrawer: React.FC<SongInsightsDrawerProps> = ({
     }
 
     setIsLoading(true);
+    setChannelDetails(null);
     fetchSongInsights(track.id)
       .then((data) => {
         setInsights(data);
         setIsLoading(false);
+        if (data.channelId) {
+          fetchArtistProfile(data.channelId)
+            .then((ch) => {
+              if (ch) setChannelDetails(ch);
+            })
+            .catch(() => {});
+        }
       })
       .catch((err) => {
         console.error('Failed to load song insights:', err);
@@ -162,29 +173,54 @@ export const SongInsightsDrawer: React.FC<SongInsightsDrawerProps> = ({
                 </div>
 
                 {/* About the Artist / Channel Card (Spotify Signature Spec) */}
-                <div className="p-4 rounded-xl bg-[#181818] border border-white/[0.04] space-y-2">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider block">
-                    About The Artist
-                  </span>
+                <div className="p-4 rounded-xl bg-[#181818] border border-white/[0.04] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      About The Artist
+                    </span>
+                    {onOpenArtist && (
+                      <button
+                        onClick={() => {
+                          const target = channelDetails?.id || channelDetails?.name || insights?.channelName || track.artist;
+                          if (target) onOpenArtist(target);
+                        }}
+                        className="text-[11px] font-bold text-[#1ED760] hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>View Profile</span>
+                        <ExternalLink className="size-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {channelDetails?.bannerUrl && (
+                    <div className="w-full h-24 rounded-lg overflow-hidden relative">
+                      <img src={channelDetails.bannerUrl} alt="Banner" className="size-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#181818] to-transparent opacity-80" />
+                    </div>
+                  )}
 
                   <div className="flex items-center gap-3 pt-1">
                     <div className="size-12 rounded-full overflow-hidden bg-[#282828] shrink-0 border border-white/10">
-                      <img src={track.artwork} alt={track.artist} className="size-full object-cover" />
+                      <img
+                        src={channelDetails?.avatarUrl || track.artwork}
+                        alt={track.artist}
+                        className="size-full object-cover"
+                      />
                     </div>
                     <div className="truncate flex-1">
                       <h4 className="font-bold text-sm text-white flex items-center gap-1.5 truncate">
-                        <span>{insights?.channelName || track.artist}</span>
+                        <span>{channelDetails?.name || insights?.channelName || track.artist}</span>
                         <CheckCircle2 className="size-3.5 text-[#1ED760] shrink-0" />
                       </h4>
                       <p className="text-xs text-[#B3B3B3] mt-0.5">
-                        Verified YouTube Channel
+                        {channelDetails?.subscriberCountText ? `${channelDetails.subscriberCountText}` : 'Verified Artist Channel'}
                       </p>
                     </div>
                   </div>
 
-                  {insights?.description && (
+                  {(channelDetails?.description || insights?.description) && (
                     <p className="text-xs text-[#A7A7A7] leading-relaxed line-clamp-3 pt-1">
-                      {insights.description}
+                      {channelDetails?.description || insights?.description}
                     </p>
                   )}
                 </div>

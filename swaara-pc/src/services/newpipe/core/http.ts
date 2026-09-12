@@ -27,21 +27,34 @@ export class HttpClient {
   /**
    * Resolves target URL:
    * In Electron: Direct YouTube endpoints.
-   * In Web Browser (Vite dev/localhost): Routes through Vite's local `/yt-api` and `/yti-api` proxies.
+   * In Local Web Browser (Vite dev/localhost): Routes through Vite's local `/yt-api` and `/yti-api` proxies.
+   * In Production Web (Vercel): Routes through `/api/proxy?url=...` Edge Function.
    */
   public static resolveUrl(rawUrl: string): string {
     if (!this.isBrowser()) {
       return rawUrl;
     }
 
-    if (rawUrl.startsWith('https://youtubei.googleapis.com')) {
-      return rawUrl.replace('https://youtubei.googleapis.com', '/yti-api');
-    }
-    if (rawUrl.startsWith('https://www.youtube.com')) {
-      return rawUrl.replace('https://www.youtube.com', '/yt-api');
+    const isLocalhost =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname === '0.0.0.0' ||
+        window.location.hostname.startsWith('192.168.') ||
+        window.location.hostname.startsWith('10.'));
+
+    if (isLocalhost) {
+      if (rawUrl.startsWith('https://youtubei.googleapis.com')) {
+        return rawUrl.replace('https://youtubei.googleapis.com', '/yti-api');
+      }
+      if (rawUrl.startsWith('https://www.youtube.com')) {
+        return rawUrl.replace('https://www.youtube.com', '/yt-api');
+      }
+      return rawUrl;
     }
 
-    return rawUrl;
+    // Production web deployment (e.g. Vercel)
+    return `/api/proxy?url=${encodeURIComponent(rawUrl)}`;
   }
 
   /**

@@ -10,6 +10,10 @@ import {
   Layers,
   Flame,
   Palette,
+  Headphones,
+  Repeat,
+  Radio,
+  Moon,
 } from 'lucide-react';
 import { Track } from '../types/music';
 
@@ -68,6 +72,15 @@ const PALETTES = [
   },
 ];
 
+const VIBE_OPTIONS = [
+  { id: 'Listening', label: 'Listening', icon: Headphones },
+  { id: 'Repeat', label: 'Repeat', icon: Repeat },
+  { id: 'Radio', label: 'Radio', icon: Radio },
+  { id: 'Favorite', label: 'Favorite', icon: Sparkles },
+  { id: 'Night', label: 'Late Night', icon: Moon },
+  { id: 'Energy', label: 'Energy', icon: Flame },
+];
+
 export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
   isOpen,
   onClose,
@@ -75,14 +88,14 @@ export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
 }) => {
   const [copiedNote, setCopiedNote] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [selectedVibe, setSelectedVibe] = useState('🎵');
+  const [selectedVibe, setSelectedVibe] = useState(VIBE_OPTIONS[0]);
   const [activePalette, setActivePalette] = useState(PALETTES[0]);
   const [isExporting, setIsExporting] = useState(false);
 
   if (!isOpen || !track) return null;
 
   const cleanTitle = track.title.replace(/\(Official.*?\)|\[Official.*?\]/gi, '').trim();
-  const noteText = `${selectedVibe} ${cleanTitle.slice(0, 24)} • ${track.artist.slice(0, 16)} 🎧`;
+  const noteText = `${cleanTitle.slice(0, 26)} — ${track.artist.slice(0, 16)} // ${selectedVibe.label}`.slice(0, 60);
 
   const handleCopyNote = async () => {
     try {
@@ -96,7 +109,7 @@ export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
 
   const handleCopyLink = async () => {
     try {
-      const shareUrl = `https://a1raaga.vercel.app/song?id=${track.id}`;
+      const shareUrl = `https://a1raaga.vercel.app/s/${track.id}`;
       await navigator.clipboard.writeText(shareUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
@@ -354,21 +367,26 @@ export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
                 <span className="text-[10px] font-mono text-zinc-500">60-char limit</span>
               </div>
 
-              {/* Emoji status icons */}
-              <div className="flex items-center gap-1.5">
-                {['🎵', '🔥', '✨', '🎧', '💫', '🖤', '⚡', '🌙'].map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => setSelectedVibe(emoji)}
-                    className={`size-7 rounded-lg text-sm flex items-center justify-center transition-all cursor-pointer ${
-                      selectedVibe === emoji
-                        ? 'bg-pink-500/25 border border-pink-500 text-white scale-110'
-                        : 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08]'
-                    }`}
-                  >
-                    {emoji}
-                  </button>
-                ))}
+              {/* Premium status badge presets */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {VIBE_OPTIONS.map((vibe) => {
+                  const Icon = vibe.icon;
+                  const isSelected = selectedVibe.id === vibe.id;
+                  return (
+                    <button
+                      key={vibe.id}
+                      onClick={() => setSelectedVibe(vibe)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-pink-500/25 border border-pink-500 text-white shadow-sm'
+                          : 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-zinc-200'
+                      }`}
+                    >
+                      <Icon className="size-3" />
+                      <span>{vibe.label}</span>
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="p-2.5 rounded-xl bg-black/60 border border-white/5 font-mono text-xs text-pink-300 truncate">

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/yt-api/(.*)",
+      "destination": "/api/proxy?endpoint=https://www.youtube.com/$1"
+    },
+    {
+      "source": "/yti-api/(.*)",
+      "destination": "/api/proxy?endpoint=https://youtubei.googleapis.com/$1"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

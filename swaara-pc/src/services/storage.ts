@@ -110,3 +110,59 @@ export function getSavedVolume(): number {
 export function saveSavedVolume(val: number) {
   localStorage.setItem(VOLUME_KEY, val.toString());
 }
+
+const FOLLOWED_ARTISTS_KEY = 'a1swaara_followed_artists';
+
+export interface FollowedArtist {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  followedAt: number;
+}
+
+export function getFollowedArtists(): FollowedArtist[] {
+  try {
+    const raw = localStorage.getItem(FOLLOWED_ARTISTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function isArtistFollowed(artistIdOrName: string): boolean {
+  const list = getFollowedArtists();
+  const normalized = artistIdOrName.toLowerCase().trim();
+  return list.some(
+    (a) => a.id === artistIdOrName || a.name.toLowerCase().trim() === normalized
+  );
+}
+
+export function toggleFollowArtist(artist: { id: string; name: string; avatarUrl?: string }): boolean {
+  const list = getFollowedArtists();
+  const normalized = artist.name.toLowerCase().trim();
+  const index = list.findIndex(
+    (a) => a.id === artist.id || a.name.toLowerCase().trim() === normalized
+  );
+
+  let isFollowed = false;
+  if (index >= 0) {
+    list.splice(index, 1);
+    isFollowed = false;
+  } else {
+    list.unshift({
+      id: artist.id,
+      name: artist.name,
+      avatarUrl: artist.avatarUrl,
+      followedAt: Date.now(),
+    });
+    isFollowed = true;
+  }
+
+  try {
+    localStorage.setItem(FOLLOWED_ARTISTS_KEY, JSON.stringify(list));
+  } catch (e) {
+    console.error('Failed to save followed artists:', e);
+  }
+
+  return isFollowed;
+}

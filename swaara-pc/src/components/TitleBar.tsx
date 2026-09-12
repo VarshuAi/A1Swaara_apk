@@ -19,6 +19,10 @@ interface TitleBarProps {
   onToggleMiniPlayer: () => void;
   isMiniPlayer?: boolean;
   onOpenSearch?: () => void;
+  onNavigateBack?: () => void;
+  onNavigateForward?: () => void;
+  canGoBack?: boolean;
+  canGoForward?: boolean;
 }
 
 export const TitleBar: React.FC<TitleBarProps> = ({
@@ -27,6 +31,10 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   onToggleMiniPlayer,
   isMiniPlayer = false,
   onOpenSearch,
+  onNavigateBack,
+  onNavigateForward,
+  canGoBack,
+  canGoForward,
 }) => {
   const [isMaximized, setIsMaximized] = useState(false);
   const isElectron = !!window.electronAPI?.isElectron;
@@ -51,15 +59,21 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         {/* Navigation History Arrows */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => window.history.back()}
-            className="size-8 rounded-full bg-[#090909] hover:bg-[#1a1a1a] text-[#B3B3B3] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            onClick={onNavigateBack || (() => window.history.back())}
+            disabled={canGoBack === false}
+            className={`size-8 rounded-full bg-[#090909] text-[#B3B3B3] flex items-center justify-center transition-colors cursor-pointer ${
+              canGoBack === false ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#1a1a1a] hover:text-white'
+            }`}
             title="Go back"
           >
             <ChevronLeft className="size-4" />
           </button>
           <button
-            onClick={() => window.history.forward()}
-            className="size-8 rounded-full bg-[#090909] hover:bg-[#1a1a1a] text-[#B3B3B3] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            onClick={onNavigateForward || (() => window.history.forward())}
+            disabled={canGoForward === false}
+            className={`size-8 rounded-full bg-[#090909] text-[#B3B3B3] flex items-center justify-center transition-colors cursor-pointer ${
+              canGoForward === false ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#1a1a1a] hover:text-white'
+            }`}
             title="Go forward"
           >
             <ChevronRight className="size-4" />

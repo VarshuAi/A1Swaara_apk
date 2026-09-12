@@ -1,4 +1,4 @@
-import { Track, SyncedLyricLine, SongInsights, ListenerComment } from '../types/music';
+import { Track, SyncedLyricLine, SongInsights, ListenerComment, ArtistDetails } from '../types/music';
 import { SearchExtractor } from './newpipe/extractors/search';
 import { StreamExtractor } from './newpipe/extractors/stream';
 import { TranscriptExtractor } from './newpipe/services/youtube/transcript';
@@ -165,6 +165,19 @@ export async function fetchSongInsights(trackId: string): Promise<SongInsights> 
       });
     }
 
+    // Fallback if relatedVideos is empty: search for similar tracks by uploader or title
+    if (!result.relatedTracks || result.relatedTracks.length === 0) {
+      try {
+        const recQuery = streamInfo.uploader?.name
+          ? `${streamInfo.uploader.name} songs`
+          : cleanTrackTitle(streamInfo.title).cleanTitle;
+        const recs = await searchMusic(recQuery);
+        result.relatedTracks = recs.filter((t) => t.id !== trackId).slice(0, 15);
+      } catch (recErr) {
+        console.warn('Fallback recommendations search failed:', recErr);
+      }
+    }
+
     // 2. Fetch Top Comments via CommentsExtractor
     try {
       const commentsData = await CommentsExtractor.getComments(trackId);
@@ -197,6 +210,85 @@ export async function fetchArtistProfile(channelIdOrHandle: string) {
     console.error('Failed to extract artist channel:', err);
     return null;
   }
+}
+
+// Fetch Comprehensive Artist Profile, Top Songs & Discography
+export async function fetchArtistFullDetails(artistNameOrChannelId: string): Promise<ArtistDetails> {
+  const isChannelId = artistNameOrChannelId.startsWith('UC') && artistNameOrChannelId.length >= 24;
+  let channelInfo: any = null;
+  let artistName = artistNameOrChannelId;
+
+  // 1. Try resolving channel
+  try {
+    if (isChannelId) {
+      channelInfo = await ChannelExtractor.extract(artistNameOrChannelId);
+      if (channelInfo?.name) {
+        artistName = channelInfo.name;
+      }
+    } else {
+      // Search for the artist channel
+      const searchRes = await SearchExtractor.search(artistNameOrChannelId, { type: 'channel' });
+      const topChannel = searchRes.items.find((item) => item.type === 'channel');
+      if (topChannel && topChannel.id) {
+        channelInfo = await ChannelExtractor.extract(topChannel.id);
+        if (channelInfo?.name) {
+          artistName = channelInfo.name;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Channel resolution failed, falling back to name search:', err);
+  }
+
+  // 2. Fetch Top Songs
+  let topTracks: Track[] = [];
+  try {
+    topTracks = await searchMusic(`${artistName} songs official audio`);
+    if (topTracks.length === 0) {
+      topTracks = await searchMusic(artistName);
+    }
+  } catch (err) {
+    console.warn('Failed to fetch top tracks for artist:', err);
+  }
+
+  // 3. Map Recent Releases / Discography
+  let latestReleases: Track[] = [];
+  if (channelInfo?.recentVideos && channelInfo.recentVideos.length > 0) {
+    latestReleases = channelInfo.recentVideos.map((v: any) => {
+      const { cleanTitle } = cleanTrackTitle(v.title);
+      const bestThumb = v.thumbnails?.[v.thumbnails.length - 1]?.url ||
+        `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;
+      return {
+        id: v.id,
+        title: cleanTitle,
+        artist: channelInfo.name || artistName,
+        duration: parseDurationToSeconds(v.durationText || '3:30'),
+        artwork: bestThumb,
+        source: 'youtube' as const,
+        bitrate: '320 kbps',
+      };
+    });
+  } else {
+    // Fallback: search for recent releases
+    try {
+      latestReleases = await searchMusic(`${artistName} latest release official audio`);
+    } catch {
+      latestReleases = topTracks.slice(5);
+    }
+  }
+
+  return {
+    id: channelInfo?.id || (isChannelId ? artistNameOrChannelId : `artist-${encodeURIComponent(artistName)}`),
+    name: artistName,
+    handle: channelInfo?.handle,
+    avatarUrl: channelInfo?.avatarUrl || topTracks[0]?.artwork,
+    bannerUrl: channelInfo?.bannerUrl,
+    subscriberCountText: channelInfo?.subscriberCountText || 'Popular Artist',
+    verified: channelInfo?.verified ?? true,
+    description: channelInfo?.description,
+    topTracks: topTracks.slice(0, 15),
+    latestReleases: latestReleases.slice(0, 10),
+  };
 }
 
 // Language Discovery Matrices using YouTube Music searches
