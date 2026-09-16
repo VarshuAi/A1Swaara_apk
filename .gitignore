@@ -1,0 +1,5 @@
+A1_Swaara_PC/
+node_modules/
+dist/
+.vite/
+*.log
