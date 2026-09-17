@@ -129,14 +129,14 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
           </span>
         </div>
 
-        {/* Hero AI Harmonic Reactor Card */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0E1524]/90 via-[#150F28]/80 to-[#0A0A16]/95 border border-white/10 p-6 shadow-2xl backdrop-blur-2xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="space-y-2.5 max-w-xl z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00F59B]/15 text-[#00F59B] border border-[#00F59B]/30 text-[10px] font-mono font-extrabold uppercase tracking-wider shadow-[0_0_12px_rgba(0,245,155,0.25)]">
+        {/* Hero AI Harmonic Reactor Bento Card */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0C1220]/90 via-[#150F28]/85 to-[#0A0A16]/95 border border-white/10 p-6 sm:p-7 shadow-2xl backdrop-blur-2xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="space-y-3 max-w-xl z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00F59B]/15 text-[#00F59B] border border-[#00F59B]/30 text-[10px] font-mono font-extrabold uppercase tracking-wider shadow-[0_0_14px_rgba(0,245,155,0.25)]">
               <Radio className="size-3 animate-pulse" />
               <span>Smart AI DJ Continuous Stream</span>
             </div>
-            <h3 className="text-2xl font-black text-white tracking-tight">
+            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
               Infinite Harmonic Music Reactor
             </h3>
             <p className="text-xs text-[#B3B3C2] leading-relaxed">
@@ -145,8 +145,8 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
 
             {/* Algorithm Vibe Mode Pills */}
             {onChangeAlgorithmMode && (
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase">
+              <div className="flex flex-wrap items-center gap-2 pt-1.5">
+                <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-wider">
                   Vibe:
                 </span>
                 {[
@@ -161,10 +161,10 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                     <button
                       key={modeItem.id}
                       onClick={() => onChangeAlgorithmMode(modeItem.id as AlgorithmMode)}
-                      className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer border ${
                         isActive
-                          ? 'bg-[#00F59B] text-black border-[#00F59B] shadow-[0_0_12px_rgba(0,245,155,0.4)] scale-105'
-                          : 'bg-white/[0.04] text-zinc-400 border-white/5 hover:text-white hover:bg-white/[0.08]'
+                          ? 'bg-[#00F59B] text-black border-[#00F59B] shadow-[0_0_14px_rgba(0,245,155,0.4)] scale-105'
+                          : 'glass-pill text-zinc-400 hover:text-white'
                       }`}
                     >
                       {modeItem.label}
@@ -202,7 +202,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 border ${
                   isSelected
                     ? 'bg-white text-black border-white shadow-lg shadow-white/10 scale-102'
-                    : 'bg-white/[0.04] text-[#B3B3C2] hover:bg-white/[0.08] hover:text-white border-white/[0.06]'
+                    : 'glass-pill text-[#B3B3C2] hover:text-white'
                 }`}
               >
                 <span>{matrix.name}</span>

@@ -94,14 +94,14 @@ export const SearchView: React.FC<SearchViewProps> = ({
 
       {/* Search Input Bar (Obsidian Glass Style) */}
       <div className="relative max-w-xl z-10">
-        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-[#9A9AA8]" />
+        <SearchIcon className="absolute left-4.5 top-1/2 -translate-y-1/2 size-5 text-[#9A9AA8]" />
         <input
           ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search songs, artists, soundtracks, or moods..."
-          className="w-full h-13 pl-12 pr-12 rounded-2xl bg-white/[0.04] hover:bg-white/[0.07] border border-white/10 hover:border-white/20 text-white placeholder-zinc-500 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#00F59B] focus:border-[#00F59B] transition-all shadow-xl backdrop-blur-2xl"
+          className="w-full h-13 pl-12 pr-12 rounded-2xl glass-panel text-white placeholder-[#626278] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#00F59B]/60 focus:border-[#00F59B]/80 transition-all shadow-xl"
         />
         {isLoading ? (
           <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -110,9 +110,9 @@ export const SearchView: React.FC<SearchViewProps> = ({
         ) : query ? (
           <button
             onClick={() => setQuery('')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9A9AA8] hover:text-white cursor-pointer"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9A9AA8] hover:text-white cursor-pointer p-1 rounded-full hover:bg-white/[0.08] transition-colors"
           >
-            <X className="size-5" />
+            <X className="size-4.5" />
           </button>
         ) : null}
       </div>

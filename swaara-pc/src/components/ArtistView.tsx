@@ -89,9 +89,9 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex-1 h-full bg-[#121212] flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="size-10 animate-spin text-[#1ED760]" />
-        <p className="text-sm font-semibold text-[#B3B3B3]">
+      <div className="flex-1 h-full bg-[#050508] flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="size-10 animate-spin text-[#00F59B]" />
+        <p className="text-sm font-semibold text-[#B3B3C2]">
           Loading Artist Hub & Discography...
         </p>
       </div>
@@ -100,8 +100,8 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
 
   if (!artist) {
     return (
-      <div className="flex-1 h-full bg-[#121212] flex flex-col items-center justify-center p-8 space-y-4 text-center">
-        <p className="text-base text-[#B3B3B3]">Could not load artist profile.</p>
+      <div className="flex-1 h-full bg-[#050508] flex flex-col items-center justify-center p-8 space-y-4 text-center">
+        <p className="text-base text-[#B3B3C2]">Could not load artist profile.</p>
         {onBack && (
           <button
             onClick={onBack}
@@ -115,9 +115,9 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
   }
 
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-gradient-to-b from-[#181818] via-[#121212] to-[#121212] select-none font-sans scrollbar-thin">
+    <div className="flex-1 h-full overflow-y-auto bg-[#050508] select-none font-sans scrollbar-thin">
       {/* 1. Cinematic Hero Header */}
-      <div className="relative h-72 sm:h-80 md:h-96 w-full flex flex-col justify-between p-6 sm:p-8 overflow-hidden bg-[#181818]">
+      <div className="relative h-72 sm:h-80 md:h-96 w-full flex flex-col justify-between p-6 sm:p-8 overflow-hidden bg-[#0A0A14]">
         {/* Background Image / Banner */}
         {artist.bannerUrl ? (
           <img
@@ -136,14 +136,14 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
         ) : null}
 
         {/* Ambient Dark Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/50 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050508] via-[#050508]/60 to-black/40" />
 
         {/* Top Floating Back Button */}
         {onBack && (
           <div className="relative z-10">
             <button
               onClick={onBack}
-              className="size-8 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white transition-colors cursor-pointer"
+              className="size-9 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white transition-colors cursor-pointer border border-white/10 backdrop-blur-md"
               title="Back"
             >
               <ArrowLeft className="size-4" />
@@ -155,8 +155,8 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
         <div className="relative z-10 space-y-2 mt-auto">
           {artist.verified && (
             <div className="flex items-center gap-1.5 text-xs font-semibold text-white drop-shadow">
-              <CheckCircle2 className="size-4 text-[#1ED760] fill-[#1ED760]" />
-              <span>Verified Artist</span>
+              <CheckCircle2 className="size-4 text-[#00F59B] fill-[#00F59B]" />
+              <span>Verified Studio Artist</span>
             </div>
           )}
 
@@ -164,35 +164,37 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
             {artist.name}
           </h1>
 
-          <p className="text-xs sm:text-sm font-medium text-white/90 drop-shadow">
-            {artist.subscriberCountText || 'Global Creator'} · Official Channel
+          <p className="text-xs sm:text-sm font-medium text-white/90 drop-shadow flex items-center gap-2">
+            <span>{artist.subscriberCountText || 'Global Recording Talent'}</span>
+            <span>•</span>
+            <span className="font-mono text-[#00F59B]">Master Studio Catalog</span>
           </p>
         </div>
       </div>
 
-      {/* 2. Spotify Action Bar */}
+      {/* 2. Studio Action Bar */}
       <div className="p-6 sm:p-8 space-y-8">
         <div className="flex items-center gap-4">
-          {/* 56px Spotify Green Play Button */}
+          {/* Master Gradient Play Button */}
           <button
             onClick={handlePlayArtistTop}
-            className="size-14 rounded-full bg-[#1ED760] text-black shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-            title="Play Artist"
+            className="size-14 rounded-full bg-gradient-to-tr from-[#00F59B] via-[#1ED760] to-[#20CFFF] text-black shadow-[0_0_24px_rgba(0,245,155,0.4)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer font-bold"
+            title="Play Artist Top Tracks"
           >
             {isCurrentArtistPlaying ? (
-              <Pause className="size-6 fill-black" />
+              <Pause className="size-6 fill-black stroke-black" />
             ) : (
-              <Play className="size-6 fill-black ml-1" />
+              <Play className="size-6 fill-black stroke-black ml-1" />
             )}
           </button>
 
           {/* Follow / Following Outline Pill Button */}
           <button
             onClick={handleFollowToggle}
-            className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
               isFollowed
-                ? 'border border-[#1ED760] text-[#1ED760] bg-[#1ED760]/10 hover:bg-[#1ED760]/20'
-                : 'border border-white/30 text-white hover:border-white hover:scale-105'
+                ? 'border border-[#00F59B] text-[#00F59B] bg-[#00F59B]/15 shadow-[0_0_14px_rgba(0,245,155,0.3)]'
+                : 'border border-white/20 text-white hover:border-white hover:scale-105 glass-pill'
             }`}
           >
             {isFollowed ? 'Following' : 'Follow'}
@@ -201,16 +203,16 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
           {/* Artist Radio */}
           <button
             onClick={handlePlayArtistTop}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-white text-xs font-bold transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-white text-xs font-bold transition-colors cursor-pointer"
           >
-            <Radio className="size-4 text-[#1ED760]" />
+            <Radio className="size-4 text-[#00F59B]" />
             <span>Artist Radio</span>
           </button>
 
           {/* 3-Dots Menu */}
           <button
             onClick={() => setShowBioModal(true)}
-            className="size-9 rounded-full text-[#B3B3B3] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="size-9 rounded-full text-[#9A9AA8] hover:text-white flex items-center justify-center transition-colors cursor-pointer hover:bg-white/[0.06]"
             title="More Options / About"
           >
             <MoreHorizontal className="size-5" />
@@ -220,7 +222,7 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
         {/* 3. Popular Songs Table (Top 5 / 10) */}
         <div className="space-y-4">
           <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            Popular
+            Popular Studio Releases
           </h2>
 
           <div className="space-y-1">
@@ -232,8 +234,8 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
                 <div
                   key={track.id + index}
                   onClick={() => onPlayTrack(track)}
-                  className={`group flex items-center justify-between p-2.5 rounded-md hover:bg-white/[0.08] transition-colors cursor-pointer ${
-                    isCurrent ? 'bg-white/[0.06]' : ''
+                  className={`group flex items-center justify-between p-2.5 rounded-2xl hover:bg-white/[0.07] border border-transparent hover:border-white/10 transition-all cursor-pointer ${
+                    isCurrent ? 'bg-white/[0.06] border-white/10' : ''
                   }`}
                 >
                   {/* Left: Index / Play Icon & Track Title */}
@@ -241,13 +243,13 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
                     {/* Index or Live Equalizer */}
                     <div className="w-6 text-center shrink-0">
                       {isCurrent && isPlaying ? (
-                        <Volume2 className="size-4 text-[#1ED760] animate-pulse mx-auto" />
+                        <Volume2 className="size-4 text-[#00F59B] animate-pulse mx-auto" />
                       ) : (
                         <>
-                          <span className="text-sm font-mono text-[#A7A7A7] group-hover:hidden">
+                          <span className="text-sm font-mono text-[#9A9AA8] group-hover:hidden">
                             {index + 1}
                           </span>
-                          <Play className="size-3.5 text-white fill-white mx-auto hidden group-hover:block" />
+                          <Play className="size-3.5 text-[#00F59B] fill-[#00F59B] mx-auto hidden group-hover:block" />
                         </>
                       )}
                     </div>
@@ -256,19 +258,19 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
                     <img
                       src={track.artwork}
                       alt={track.title}
-                      className="size-10 rounded object-cover shrink-0 shadow"
+                      className="size-11 rounded-xl object-cover shrink-0 shadow bg-[#141420] border border-white/5"
                     />
 
                     {/* Title */}
                     <div className="truncate">
                       <p
                         className={`text-sm font-semibold truncate ${
-                          isCurrent ? 'text-[#1ED760]' : 'text-white group-hover:text-white'
+                          isCurrent ? 'text-[#00F59B]' : 'text-white group-hover:text-white'
                         }`}
                       >
                         {track.title}
                       </p>
-                      <p className="text-xs text-[#A7A7A7] truncate">{track.artist}</p>
+                      <p className="text-xs text-[#9A9AA8] truncate">{track.artist}</p>
                     </div>
                   </div>
 
@@ -279,14 +281,14 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
                         e.stopPropagation();
                         onToggleLike(track);
                       }}
-                      className={`cursor-pointer transition-transform active:scale-90 ${
+                      className={`cursor-pointer transition-transform active:scale-90 p-1 ${
                         isLiked
-                          ? 'text-[#1ED760]'
-                          : 'text-[#B3B3B3] hover:text-white opacity-0 group-hover:opacity-100'
+                          ? 'text-[#00F59B]'
+                          : 'text-[#9A9AA8] hover:text-white opacity-0 group-hover:opacity-100'
                       }`}
                       title={isLiked ? 'Remove from Liked' : 'Save to Liked'}
                     >
-                      <Heart className={`size-4 ${isLiked ? 'fill-[#1ED760]' : ''}`} />
+                      <Heart className={`size-4 ${isLiked ? 'fill-[#00F59B] drop-shadow-[0_0_6px_rgba(0,245,155,0.5)]' : ''}`} />
                     </button>
 
                     <button
@@ -294,13 +296,13 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
                         e.stopPropagation();
                         onDownloadTrack(track);
                       }}
-                      className="text-[#B3B3B3] hover:text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      className="text-[#9A9AA8] hover:text-[#00F59B] opacity-0 group-hover:opacity-100 transition-all cursor-pointer p-1"
                       title="Download 320kbps"
                     >
                       <Download className="size-4" />
                     </button>
 
-                    <span className="text-xs font-mono text-[#A7A7A7] w-10 text-right">
+                    <span className="text-xs font-mono text-[#9A9AA8] w-10 text-right">
                       {formatDuration(track.duration)}
                     </span>
                   </div>

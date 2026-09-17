@@ -4,23 +4,24 @@
   :root {
     /* Obsidian Luxury Studio Theme Tokens */
     --swaara-bg-base: #050508;
-    --swaara-bg-surface: rgba(14, 14, 22, 0.75);
-    --swaara-bg-elevated: rgba(22, 22, 34, 0.85);
+    --swaara-bg-surface: rgba(13, 13, 20, 0.75);
+    --swaara-bg-elevated: rgba(20, 20, 32, 0.88);
     --swaara-bg-card: rgba(255, 255, 255, 0.035);
-    --swaara-bg-card-hover: rgba(255, 255, 255, 0.08);
+    --swaara-bg-card-hover: rgba(255, 255, 255, 0.075);
 
     --swaara-neon-green: #00F59B;
     --swaara-spotify-green: #1ED760;
     --swaara-purple: #8B35FF;
     --swaara-pink: #FF2DAA;
     --swaara-cyan: #20CFFF;
+    --swaara-amber: #FFB347;
 
     --swaara-text-primary: #FFFFFF;
     --swaara-text-secondary: #B3B3C2;
-    --swaara-text-muted: #64647A;
+    --swaara-text-muted: #626278;
 
     --swaara-border: rgba(255, 255, 255, 0.08);
-    --swaara-border-hover: rgba(255, 255, 255, 0.20);
+    --swaara-border-hover: rgba(255, 255, 255, 0.18);
     --swaara-border-glow: rgba(0, 245, 155, 0.35);
   }
 
@@ -46,10 +47,18 @@
 
 /* Glassmorphism Surface Utility */
 .glass-panel {
-  background: rgba(14, 14, 22, 0.65);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(13, 13, 20, 0.72);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-panel-elevated {
+  background: rgba(18, 18, 28, 0.88);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
 }
 
 .glass-card {
@@ -57,13 +66,33 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.065);
+  border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.2s ease;
+}
+
+.glass-pill:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.glass-pill-active {
+  background: rgba(0, 245, 155, 0.12);
+  border-color: rgba(0, 245, 155, 0.35);
+  color: #00F59B;
+  box-shadow: 0 0 20px rgba(0, 245, 155, 0.15);
 }
 
 /* Ambient Radial Glow Animations */

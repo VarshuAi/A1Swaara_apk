@@ -138,29 +138,35 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
   };
 
   return (
-    <footer className="h-21 w-full bg-[#080811]/95 backdrop-blur-3xl border-t border-white/[0.08] px-5 flex items-center justify-between select-none z-40 relative font-sans shadow-[0_-10px_35px_rgba(0,0,0,0.8)]">
+    <footer className="h-21 w-full glass-panel-elevated px-5 flex items-center justify-between select-none z-40 relative font-sans shadow-[0_-12px_40px_rgba(0,0,0,0.85)]">
       {/* 1. Left Column: Track Info & Artwork */}
       <div className="flex items-center gap-3.5 w-[30%] min-w-[200px] max-w-[340px]">
         {currentTrack ? (
           <>
-            {/* Artwork with Click-to-Expand Stage */}
-            <div
-              onClick={onExpandNowPlaying}
-              className="relative size-14 rounded-xl overflow-hidden shrink-0 shadow-lg shadow-black/60 group cursor-pointer bg-[#141420] border border-white/10"
-              title="Expand Now Playing Stage"
-            >
-              <img
-                src={currentTrack.artwork}
-                alt={currentTrack.title}
-                className="size-full object-cover group-hover:scale-105 transition-transform"
-              />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <Maximize2 className="size-4 text-white" />
+            {/* Artwork with Ambient Glow & Click-to-Expand Stage */}
+            <div className="relative group shrink-0">
+              {/* Subtle ambient light aura */}
+              {isPlaying && (
+                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-[#00F59B]/30 via-[#20CFFF]/20 to-[#8B35FF]/30 blur-md opacity-70 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              )}
+              <div
+                onClick={onExpandNowPlaying}
+                className="relative size-14 rounded-xl overflow-hidden shadow-lg shadow-black/80 group cursor-pointer bg-[#141420] border border-white/12"
+                title="Expand Now Playing Stage"
+              >
+                <img
+                  src={currentTrack.artwork}
+                  alt={currentTrack.title}
+                  className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                  <Maximize2 className="size-4 text-white" />
+                </div>
               </div>
             </div>
 
             {/* Track Title & Artist */}
-            <div className="truncate flex-1">
+            <div className="truncate flex-1 min-w-0">
               <div className="flex items-center gap-1.5 truncate">
                 <p
                   onClick={onExpandNowPlaying}
@@ -194,7 +200,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
               }`}
               title={isLiked ? 'Remove from Your Library' : 'Save to Your Library'}
             >
-              <Heart className={`size-4.5 ${isLiked ? 'fill-[#00F59B] drop-shadow-[0_0_8px_rgba(0,245,155,0.5)]' : ''}`} />
+              <Heart className={`size-4.5 ${isLiked ? 'fill-[#00F59B] drop-shadow-[0_0_8px_rgba(0,245,155,0.6)]' : ''}`} />
             </button>
 
             {/* 1-Click 320k Download */}
@@ -368,108 +374,120 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
       </div>
 
       {/* 3. Right Column: Studio Tools, Queue, Lyrics, Insights, Volume */}
-      <div className="flex items-center justify-end gap-3 w-[30%] min-w-[200px]">
-        {/* Spatial 3D Surround Audio Pill */}
-        {onToggleSpatialAudio && (
+      <div className="flex items-center justify-end gap-2.5 w-[30%] min-w-[200px]">
+        {/* Audio FX & DSP Studio Pill */}
+        <div className="hidden md:flex items-center gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.08]">
+          {/* Spatial 3D Surround Audio Pill */}
+          {onToggleSpatialAudio && (
+            <button
+              onClick={onToggleSpatialAudio}
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                isSpatialAudio
+                  ? 'bg-[#8B35FF]/25 text-[#20CFFF] border border-[#20CFFF]/40 shadow-[0_0_10px_rgba(32,207,255,0.25)]'
+                  : 'text-[#8E8E9F] hover:text-white'
+              }`}
+              title={isSpatialAudio ? 'Spatial 3D Audio: ON' : 'Spatial 3D Audio: OFF'}
+            >
+              <Headphones className="size-3" />
+              <span>3D</span>
+            </button>
+          )}
+
+          {/* Playback Speed Controller Pill */}
+          {onChangeSpeed && (
+            <button
+              onClick={() => {
+                const nextRate = playbackSpeed === 1.0 ? 1.25 : playbackSpeed === 1.25 ? 1.5 : playbackSpeed === 1.5 ? 0.8 : 1.0;
+                onChangeSpeed(nextRate);
+              }}
+              className="px-1.5 py-0.5 rounded-lg text-[10px] font-mono font-bold text-[#8E8E9F] hover:text-white transition-all cursor-pointer flex items-center gap-0.5"
+              title="Cycle Playback Speed (0.8x, 1x, 1.25x, 1.5x)"
+            >
+              <Gauge className="size-3 text-[#00F59B]" />
+              <span>{playbackSpeed}x</span>
+            </button>
+          )}
+
+          {/* Studio Equalizer */}
           <button
-            onClick={onToggleSpatialAudio}
-            className={`hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold transition-all cursor-pointer border ${
-              isSpatialAudio
-                ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.3)] scale-105'
-                : 'text-[#888888] hover:text-white border-white/10 hover:border-white/20 bg-white/[0.03]'
+            onClick={onOpenEqualizer}
+            className="p-1 text-[#8E8E9F] hover:text-[#00F59B] transition-colors cursor-pointer rounded-lg hover:bg-white/[0.06]"
+            title="BOOM BASS Studio EQ (10-Band)"
+          >
+            <SlidersHorizontal className="size-3.5" />
+          </button>
+        </div>
+
+        {/* Stage & Drawer Toggles */}
+        <div className="flex items-center gap-1">
+          {/* Karaoke Lyrics */}
+          <button
+            onClick={onOpenLyrics}
+            className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+              isLyricsActive
+                ? 'text-[#00F59B] bg-[#00F59B]/15 border border-[#00F59B]/30 shadow-[0_0_12px_rgba(0,245,155,0.2)]'
+                : 'text-[#9A9AA8] hover:text-white hover:bg-white/[0.06]'
             }`}
-            title={isSpatialAudio ? 'Spatial 3D Audio: ON' : 'Spatial 3D Audio: OFF'}
+            title="Karaoke Lyrics"
           >
-            <Headphones className="size-3" />
-            <span>3D</span>
+            <Mic2 className="size-4" />
           </button>
-        )}
 
-        {/* Playback Speed Controller Pill */}
-        {onChangeSpeed && (
+          {/* Up Next Queue */}
           <button
-            onClick={() => {
-              const nextRate = playbackSpeed === 1.0 ? 1.25 : playbackSpeed === 1.25 ? 1.5 : playbackSpeed === 1.5 ? 0.8 : 1.0;
-              onChangeSpeed(nextRate);
-            }}
-            className="hidden lg:inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-mono font-bold text-[#A7A7A7] hover:text-white border border-white/10 hover:border-white/20 bg-white/[0.03] transition-all cursor-pointer"
-            title="Cycle Playback Speed (0.8x, 1x, 1.25x, 1.5x)"
-          >
-            <Gauge className="size-3 text-[#1ED760]" />
-            <span>{playbackSpeed}x</span>
-          </button>
-        )}
-
-        {/* Karaoke Lyrics */}
-        <button
-          onClick={onOpenLyrics}
-          className={`p-1.5 transition-colors cursor-pointer ${
-            isLyricsActive ? 'text-[#1ED760]' : 'text-[#B3B3B3] hover:text-white'
-          }`}
-          title="Karaoke Lyrics"
-        >
-          <Mic2 className="size-4.5" />
-        </button>
-
-        {/* Up Next Queue */}
-        <button
-          onClick={onToggleQueue}
-          className={`p-1.5 transition-colors cursor-pointer ${
-            isQueueActive ? 'text-[#1ED760]' : 'text-[#B3B3B3] hover:text-white'
-          }`}
-          title="Up Next Queue"
-        >
-          <ListMusic className="size-4.5" />
-        </button>
-
-        {/* Song Insights & Acoustic Profile */}
-        {onToggleInsights && (
-          <button
-            onClick={onToggleInsights}
-            className={`p-1.5 transition-colors cursor-pointer ${
-              isInsightsActive ? 'text-[#1ED760]' : 'text-[#B3B3B3] hover:text-white'
+            onClick={onToggleQueue}
+            className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+              isQueueActive
+                ? 'text-[#00F59B] bg-[#00F59B]/15 border border-[#00F59B]/30 shadow-[0_0_12px_rgba(0,245,155,0.2)]'
+                : 'text-[#9A9AA8] hover:text-white hover:bg-white/[0.06]'
             }`}
-            title="Song Insights & Listener Comments"
+            title="Up Next Queue"
           >
-            <Info className="size-4.5" />
+            <ListMusic className="size-4" />
           </button>
-        )}
 
-        {/* Studio Equalizer */}
-        <button
-          onClick={onOpenEqualizer}
-          className="p-1.5 text-[#B3B3B3] hover:text-white transition-colors cursor-pointer"
-          title="BOOM BASS Studio EQ"
-        >
-          <SlidersHorizontal className="size-4.5" />
-        </button>
+          {/* Song Insights & Acoustic Profile */}
+          {onToggleInsights && (
+            <button
+              onClick={onToggleInsights}
+              className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+                isInsightsActive
+                  ? 'text-[#00F59B] bg-[#00F59B]/15 border border-[#00F59B]/30 shadow-[0_0_12px_rgba(0,245,155,0.2)]'
+                  : 'text-[#9A9AA8] hover:text-white hover:bg-white/[0.06]'
+              }`}
+              title="Song Insights & Listener Comments"
+            >
+              <Info className="size-4" />
+            </button>
+          )}
+        </div>
 
         {/* Volume Scrub */}
         <div
-          className="flex items-center gap-2 group w-28"
+          className="flex items-center gap-2 group w-24 lg:w-28 pl-1"
           onMouseEnter={() => setIsVolumeHovered(true)}
           onMouseLeave={() => setIsVolumeHovered(false)}
         >
           <button
             onClick={handleToggleMute}
-            className="text-[#B3B3B3] hover:text-white transition-colors cursor-pointer shrink-0"
+            className="text-[#9A9AA8] hover:text-white transition-colors cursor-pointer shrink-0"
             title={volume === 0 ? 'Unmute' : 'Mute'}
           >
             {volume === 0 ? (
-              <VolumeX className="size-4.5 text-[#E81123]" />
+              <VolumeX className="size-4 text-[#FF2DAA]" />
             ) : volume < 0.5 ? (
-              <Volume1 className="size-4.5" />
+              <Volume1 className="size-4" />
             ) : (
-              <Volume2 className="size-4.5" />
+              <Volume2 className="size-4" />
             )}
           </button>
 
-          <div className="relative flex-1 h-1.5 bg-white/[0.08] rounded-full cursor-pointer overflow-hidden">
+          <div className="relative flex-1 h-1.5 bg-white/[0.10] rounded-full cursor-pointer overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
                 isVolumeHovered
                   ? 'bg-gradient-to-r from-[#00F59B] to-[#20CFFF] shadow-[0_0_8px_rgba(0,245,155,0.6)]'
-                  : 'bg-white'
+                  : 'bg-white/90'
               }`}
               style={{ width: `${volume * 100}%` }}
             />
@@ -488,7 +506,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
         {/* Fullscreen */}
         <button
           onClick={onToggleFullscreen}
-          className="p-1.5 text-[#B3B3B3] hover:text-white transition-colors cursor-pointer hidden sm:block"
+          className="p-1.5 text-[#9A9AA8] hover:text-white transition-colors cursor-pointer hidden xl:block hover:bg-white/[0.06] rounded-lg"
           title="Fullscreen Stage Mode"
         >
           <Maximize2 className="size-4" />

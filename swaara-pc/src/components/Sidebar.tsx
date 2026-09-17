@@ -43,18 +43,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside className="w-64 md:w-72 h-full flex flex-col gap-2.5 p-2.5 bg-[#050508] select-none shrink-0 font-sans">
       {/* Top Block: Primary App Navigation with Frosted Glass Panel */}
-      <div className="bg-[#0D0D18]/90 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-4 space-y-4 shadow-xl">
+      <div className="glass-panel rounded-2xl p-3.5 space-y-3.5 shadow-xl">
         {/* Brand Header */}
-        <div className="flex items-center justify-between px-1">
+        <div className="flex items-center justify-between px-1.5 pt-0.5">
           <div className="flex items-center gap-2.5">
-            <div className="size-8 rounded-xl bg-gradient-to-tr from-[#00F59B] via-[#1ED760] to-[#20CFFF] flex items-center justify-center text-black font-black text-sm shadow-[0_0_16px_rgba(0,245,155,0.4)]">
+            <div className="size-8 rounded-xl bg-gradient-to-tr from-[#00F59B] via-[#1ED760] to-[#20CFFF] flex items-center justify-center text-black font-black text-sm shadow-[0_0_18px_rgba(0,245,155,0.45)]">
               <Music2 className="size-4.5 stroke-[2.5]" />
             </div>
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold text-base tracking-tight text-white font-sans">
                 Swaara
               </span>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-[#00F59B]/15 text-[#00F59B] border border-[#00F59B]/30 tracking-wider">
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-[#00F59B]/15 text-[#00F59B] border border-[#00F59B]/30 tracking-wider">
                 STUDIO
               </span>
             </div>
@@ -62,43 +62,52 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation Links */}
-        <nav className="space-y-1.5">
+        <nav className="space-y-1">
           <button
             onClick={() => onSelectTab('discover')}
-            className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+            className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer relative overflow-hidden ${
               activeTab === 'discover'
-                ? 'text-white bg-white/[0.08] border border-white/10 shadow-[0_0_20px_rgba(0,245,155,0.1)]'
+                ? 'text-white bg-gradient-to-r from-white/[0.12] to-white/[0.04] border border-white/12 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
                 : 'text-[#9A9AA8] hover:text-white hover:bg-white/[0.04]'
             }`}
           >
-            <Home className={`size-4.5 ${activeTab === 'discover' ? 'text-[#00F59B]' : ''}`} />
+            {activeTab === 'discover' && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-[#00F59B] shadow-[0_0_10px_#00F59B]" />
+            )}
+            <Home className={`size-4.5 transition-colors ${activeTab === 'discover' ? 'text-[#00F59B]' : ''}`} />
             <span>Home Stage</span>
           </button>
 
           <button
             onClick={() => onSelectTab('search')}
-            className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+            className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer relative overflow-hidden ${
               activeTab === 'search'
-                ? 'text-white bg-white/[0.08] border border-white/10 shadow-[0_0_20px_rgba(0,245,155,0.1)]'
+                ? 'text-white bg-gradient-to-r from-white/[0.12] to-white/[0.04] border border-white/12 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
                 : 'text-[#9A9AA8] hover:text-white hover:bg-white/[0.04]'
             }`}
           >
-            <Search className={`size-4.5 ${activeTab === 'search' ? 'text-[#00F59B]' : ''}`} />
+            {activeTab === 'search' && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-[#00F59B] shadow-[0_0_10px_#00F59B]" />
+            )}
+            <Search className={`size-4.5 transition-colors ${activeTab === 'search' ? 'text-[#00F59B]' : ''}`} />
             <span>Explore Catalog</span>
           </button>
 
           <button
             onClick={() => onSelectTab('local')}
-            className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+            className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer relative overflow-hidden ${
               activeTab === 'local'
-                ? 'text-white bg-white/[0.08] border border-white/10 shadow-[0_0_20px_rgba(32,207,255,0.15)]'
+                ? 'text-white bg-gradient-to-r from-white/[0.12] to-white/[0.04] border border-white/12 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
                 : 'text-[#9A9AA8] hover:text-white hover:bg-white/[0.04]'
             }`}
           >
-            <HardDrive className={`size-4.5 ${activeTab === 'local' ? 'text-[#20CFFF]' : ''}`} />
+            {activeTab === 'local' && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-[#20CFFF] shadow-[0_0_10px_#20CFFF]" />
+            )}
+            <HardDrive className={`size-4.5 transition-colors ${activeTab === 'local' ? 'text-[#20CFFF]' : ''}`} />
             <div className="flex items-center justify-between flex-1">
               <span>PC Local Studio</span>
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.06] text-white/70">
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-white/[0.06] text-[#20CFFF] border border-[#20CFFF]/20">
                 OFFLINE
               </span>
             </div>
@@ -107,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Main Block: Your Library (Obsidian Glass Card) */}
-      <div className="bg-[#0D0D18]/90 backdrop-blur-2xl border border-white/[0.08] rounded-2xl flex-1 flex flex-col p-3.5 overflow-hidden shadow-xl">
+      <div className="glass-panel rounded-2xl flex-1 flex flex-col p-3.5 overflow-hidden shadow-xl">
         {/* Library Header */}
         <div className="flex items-center justify-between px-2 pb-3">
           <button
@@ -126,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
               libraryFilter === 'all'
                 ? 'bg-white text-black font-bold shadow-md'
-                : 'bg-white/[0.05] text-zinc-400 hover:text-white hover:bg-white/[0.1]'
+                : 'glass-pill text-[#9A9AA8] hover:text-white'
             }`}
           >
             All
@@ -136,7 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
               libraryFilter === 'playlists'
                 ? 'bg-white text-black font-bold shadow-md'
-                : 'bg-white/[0.05] text-zinc-400 hover:text-white hover:bg-white/[0.1]'
+                : 'glass-pill text-[#9A9AA8] hover:text-white'
             }`}
           >
             Playlists
@@ -146,7 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
               libraryFilter === 'downloads'
                 ? 'bg-white text-black font-bold shadow-md'
-                : 'bg-white/[0.05] text-zinc-400 hover:text-white hover:bg-white/[0.1]'
+                : 'glass-pill text-[#9A9AA8] hover:text-white'
             }`}
           >
             Downloaded
