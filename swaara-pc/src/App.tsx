@@ -600,7 +600,7 @@ export function App() {
         />
 
         {/* Dynamic Center Viewport in Rounded Obsidian Frame */}
-        <main className="flex-1 h-full overflow-hidden flex flex-col bg-[#0B0B14]/90 backdrop-blur-2xl border border-white/[0.08] rounded-2xl relative shadow-2xl">
+        <main className="flex-1 h-full overflow-hidden flex flex-col glass-panel rounded-2xl relative shadow-2xl">
           {isNowPlayingOpen && currentTrack ? (
             <NowPlayingView
               track={currentTrack}
