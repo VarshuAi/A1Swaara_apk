@@ -221,7 +221,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       </span>
                     ) : (
                       <span className="text-[11px] text-[#A7A7A7]">
-                        NewPipe Stream
+                        Studio Master 320k
                       </span>
                     )}
                   </div>

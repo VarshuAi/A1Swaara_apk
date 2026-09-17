@@ -12,11 +12,12 @@ import { QueueDrawer } from './components/QueueDrawer';
 import { MiniPlayer } from './components/MiniPlayer';
 import { SongInsightsDrawer } from './components/SongInsightsDrawer';
 import { ArtistView } from './components/ArtistView';
-import { Track, ActiveTab, SyncedLyricLine } from './types/music';
+import { Track, ActiveTab, SyncedLyricLine, AlgorithmMode, SleepTimerOption } from './types/music';
 import { resolveTrackStream, fetchLyrics } from './services/api';
 import { audioEngine, DEFAULT_PRESETS } from './services/audioEngine';
+import { getSmartNextTracks } from './services/algorithm';
 import * as storage from './services/storage';
-import { CheckCircle2, Download } from 'lucide-react';
+import { CheckCircle2, Download, Radio, Sparkles } from 'lucide-react';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('discover');
@@ -35,6 +36,13 @@ export function App() {
   const [volume, setVolume] = useState<number>(storage.getSavedVolume());
   const [isShuffle, setIsShuffle] = useState<boolean>(false);
   const [isRepeat, setIsRepeat] = useState<boolean>(false);
+
+  // Intelligent Algorithm & Pro Audio DSP State
+  const [isAutoDJ, setIsAutoDJ] = useState<boolean>(true);
+  const [algorithmMode, setAlgorithmMode] = useState<AlgorithmMode>('flow');
+  const [isSpatialAudio, setIsSpatialAudio] = useState<boolean>(audioEngine.isSpatialAudio());
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(audioEngine.getPlaybackRate());
+  const [sleepTimerOption, setSleepTimerOption] = useState<SleepTimerOption>(audioEngine.getSleepTimerOption());
 
   // Modals & Views
   const [isNowPlayingOpen, setIsNowPlayingOpen] = useState<boolean>(false);
@@ -67,6 +75,14 @@ export function App() {
   isRepeatRef.current = isRepeat;
   const currentTrackRef = useRef(currentTrack);
   currentTrackRef.current = currentTrack;
+  const isAutoDJRef = useRef(isAutoDJ);
+  isAutoDJRef.current = isAutoDJ;
+  const algorithmModeRef = useRef(algorithmMode);
+  algorithmModeRef.current = algorithmMode;
+  const historySongsRef = useRef(historySongs);
+  historySongsRef.current = historySongs;
+  const likedSongsRef = useRef(likedSongs);
+  likedSongsRef.current = likedSongs;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -162,6 +178,28 @@ export function App() {
       newQueue.splice(nextIndex, 1);
       setQueue(newQueue);
       handlePlayTrack(nextTrack);
+    } else if (isAutoDJRef.current && currentTrackRef.current) {
+      showToast('Smart AI DJ: Generating continuous stream...');
+      getSmartNextTracks(
+        currentTrackRef.current,
+        historySongsRef.current,
+        likedSongsRef.current,
+        6,
+        algorithmModeRef.current
+      )
+        .then((nextTracks) => {
+          if (nextTracks.length > 0) {
+            const first = nextTracks[0];
+            const rest = nextTracks.slice(1);
+            setQueue(rest);
+            handlePlayTrack(first);
+          } else {
+            showToast('Queue ended');
+          }
+        })
+        .catch(() => {
+          showToast('Queue ended');
+        });
     } else {
       showToast('Queue ended');
     }
@@ -175,6 +213,59 @@ export function App() {
       handlePlayTrack(historySongs[1]);
     }
   }, [currentTime, historySongs, handlePlayTrack]);
+
+  // Pre-fetch next tracks with Smart DJ when queue <= 1 to ensure seamless continuous play
+  useEffect(() => {
+    if (!isAutoDJ || !currentTrack || queue.length > 1) return;
+
+    if (duration > 0 && duration - currentTime < 25) {
+      getSmartNextTracks(currentTrack, historySongs, likedSongs, 4, algorithmMode)
+        .then((recs) => {
+          if (recs.length > 0) {
+            setQueue((prev) => {
+              const existingIds = new Set(prev.map((t) => t.id));
+              const fresh = recs.filter((t) => !existingIds.has(t.id));
+              return [...prev, ...fresh];
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [currentTime, duration, isAutoDJ, currentTrack, queue.length, historySongs, likedSongs, algorithmMode]);
+
+  // Audio DSP & Pro Handlers
+  const handleToggleSpatialAudio = () => {
+    const next = !isSpatialAudio;
+    setIsSpatialAudio(next);
+    audioEngine.setSpatialAudio(next);
+    showToast(next ? 'Spatial 3D Audio: ON 🎧' : 'Spatial 3D Audio: OFF');
+  };
+
+  const handleChangeSpeed = (speed: number) => {
+    setPlaybackSpeed(speed);
+    audioEngine.setPlaybackRate(speed);
+    showToast(`Playback Speed: ${speed}x`);
+  };
+
+  const handleSelectSleepTimer = (option: SleepTimerOption) => {
+    setSleepTimerOption(option);
+    audioEngine.setSleepTimer(option, () => {
+      showToast('Sleep Timer: Music Paused 🌙');
+    });
+    if (option === 'track_end') {
+      showToast('Sleep Timer: Stop at End of Track');
+    } else if (option) {
+      showToast(`Sleep Timer: ${option} minutes`);
+    } else {
+      showToast('Sleep Timer: Disabled');
+    }
+  };
+
+  const handleToggleAutoDJ = () => {
+    const next = !isAutoDJ;
+    setIsAutoDJ(next);
+    showToast(next ? 'Smart AI DJ: Continuous Flow ON ⚡' : 'Smart AI DJ: OFF');
+  };
 
   // Initialize AudioEngine callbacks & presets on startup
   useEffect(() => {
@@ -457,6 +548,12 @@ export function App() {
               onOpenStoryCreator={() => setIsStoryCreatorOpen(true)}
               lyrics={lyrics}
               onSeek={(t) => audioEngine.seek(t)}
+              isSpatialAudio={isSpatialAudio}
+              onToggleSpatialAudio={handleToggleSpatialAudio}
+              playbackSpeed={playbackSpeed}
+              onChangeSpeed={handleChangeSpeed}
+              sleepTimerOption={sleepTimerOption}
+              onSelectSleepTimer={handleSelectSleepTimer}
             />
           ) : activeTab === 'artist' && selectedArtist ? (
             <ArtistView
@@ -570,6 +667,12 @@ export function App() {
         isInsightsActive={isInsightsOpen}
         isQueueActive={isQueueOpen}
         isDownloading={isDownloading}
+        isSpatialAudio={isSpatialAudio}
+        onToggleSpatialAudio={handleToggleSpatialAudio}
+        playbackSpeed={playbackSpeed}
+        onChangeSpeed={handleChangeSpeed}
+        isAutoDJ={isAutoDJ}
+        onToggleAutoDJ={handleToggleAutoDJ}
       />
 
       {/* Modals */}

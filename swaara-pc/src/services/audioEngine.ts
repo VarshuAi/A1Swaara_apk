@@ -1,4 +1,4 @@
-import { EqualizerPreset, Track } from '../types/music';
+import { EqualizerPreset, Track, SleepTimerOption, VisualizerMode } from '../types/music';
 
 // Frequency bands for 10-Band Studio Equalizer
 export const EQ_FREQUENCIES = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
@@ -61,6 +61,16 @@ class AudioEngine {
   private ytPollTimer: any = null;
   private activeTrack: Track | null = null;
 
+  private pannerNode: StereoPannerNode | null = null;
+  private spatialWidener: BiquadFilterNode | null = null;
+  private isSpatialAudioEnabled = false;
+  private isBassExciterEnabled = true;
+  private playbackRate = 1.0;
+  private sleepTimerId: any = null;
+  private sleepTimerTarget: number | null = null;
+  private sleepOption: SleepTimerOption = null;
+  private onSleepTimerTriggerCb?: () => void;
+
   private onTimeUpdateCb?: (current: number, duration: number, buffered: number) => void;
   private onEndCb?: () => void;
   private onPlayChangeCb?: (isPlaying: boolean) => void;
@@ -86,6 +96,7 @@ class AudioEngine {
     });
 
     this.audio.addEventListener('ended', () => {
+      if (this.checkTrackEndSleep()) return;
       if (this.onEndCb) this.onEndCb();
     });
 
@@ -154,7 +165,20 @@ class AudioEngine {
       this.bassBoostFilter = this.audioCtx.createBiquadFilter();
       this.bassBoostFilter.type = 'lowshelf';
       this.bassBoostFilter.frequency.value = 60;
-      this.bassBoostFilter.gain.value = 0;
+      this.bassBoostFilter.gain.value = this.isBassExciterEnabled ? 4 : 0;
+
+      // Spatial 3D Audio Psychoacoustic Widener
+      this.spatialWidener = this.audioCtx.createBiquadFilter();
+      this.spatialWidener.type = 'peaking';
+      this.spatialWidener.frequency.value = 3200;
+      this.spatialWidener.Q.value = 0.9;
+      this.spatialWidener.gain.value = this.isSpatialAudioEnabled ? 4.5 : 0;
+
+      // Stereo Panner Node if supported by platform
+      if (typeof this.audioCtx.createStereoPanner === 'function') {
+        this.pannerNode = this.audioCtx.createStereoPanner();
+        this.pannerNode.pan.value = 0;
+      }
 
       // Master Gain
       this.masterGain = this.audioCtx.createGain();
@@ -164,7 +188,7 @@ class AudioEngine {
       this.analyser.fftSize = 128; // 64 frequency bins
       this.analyser.smoothingTimeConstant = 0.82;
 
-      // Connect Graph: source -> filters[0..9] -> bassBoost -> masterGain -> analyser -> destination
+      // Connect Graph: source -> filters[0..9] -> bassBoost -> spatialWidener -> (pannerNode) -> masterGain -> analyser -> destination
       let lastNode: AudioNode = this.sourceNode;
       for (const filter of this.filters) {
         lastNode.connect(filter);
@@ -172,7 +196,15 @@ class AudioEngine {
       }
 
       lastNode.connect(this.bassBoostFilter);
-      this.bassBoostFilter.connect(this.masterGain);
+      this.bassBoostFilter.connect(this.spatialWidener);
+
+      let preMasterNode: AudioNode = this.spatialWidener;
+      if (this.pannerNode) {
+        this.spatialWidener.connect(this.pannerNode);
+        preMasterNode = this.pannerNode;
+      }
+
+      preMasterNode.connect(this.masterGain);
       this.masterGain.connect(this.analyser);
       this.analyser.connect(this.audioCtx.destination);
 
@@ -270,6 +302,7 @@ class AudioEngine {
               } else if (state === 0) { // ended
                 this.isYtPlaying = false;
                 if (this.onPlayChangeCb) this.onPlayChangeCb(false);
+                if (this.checkTrackEndSleep()) return;
                 if (this.onEndCb) this.onEndCb();
               }
             },
@@ -448,6 +481,130 @@ class AudioEngine {
     if (this.bassBoostFilter) {
       this.bassBoostFilter.gain.value = Math.max(0, Math.min(12, val));
     }
+  }
+
+  // Spatial 3D Surround Audio toggle
+  public setSpatialAudio(enabled: boolean) {
+    this.isSpatialAudioEnabled = enabled;
+    if (this.spatialWidener) {
+      this.spatialWidener.gain.value = enabled ? 4.5 : 0;
+    }
+    if (this.pannerNode) {
+      this.pannerNode.pan.value = 0;
+    }
+  }
+
+  public isSpatialAudio(): boolean {
+    return this.isSpatialAudioEnabled;
+  }
+
+  // Sub-Bass Harmonics Exciter toggle
+  public setBassExciter(enabled: boolean) {
+    this.isBassExciterEnabled = enabled;
+    if (this.bassBoostFilter) {
+      this.bassBoostFilter.gain.value = enabled ? 6 : 0;
+    }
+  }
+
+  public isBassExciter(): boolean {
+    return this.isBassExciterEnabled;
+  }
+
+  // Playback Speed Controller (0.8x, 1.0x, 1.25x, 1.5x)
+  public setPlaybackRate(rate: number) {
+    const clamped = Math.max(0.5, Math.min(2.0, rate));
+    this.playbackRate = clamped;
+    this.audio.playbackRate = clamped;
+    if (this.ytPlayer && typeof this.ytPlayer.setPlaybackRate === 'function') {
+      try {
+        this.ytPlayer.setPlaybackRate(clamped);
+      } catch {}
+    }
+  }
+
+  public getPlaybackRate(): number {
+    return this.playbackRate;
+  }
+
+  // Intelligent Sleep Timer with 15-second acoustic fade-out
+  public setSleepTimer(option: SleepTimerOption, onTrigger?: () => void) {
+    if (this.sleepTimerId) {
+      clearInterval(this.sleepTimerId);
+      this.sleepTimerId = null;
+    }
+    this.sleepOption = option;
+    this.onSleepTimerTriggerCb = onTrigger;
+
+    if (!option || option === 'track_end') {
+      this.sleepTimerTarget = null;
+      return;
+    }
+
+    const durationMs = option * 60 * 1000;
+    this.sleepTimerTarget = Date.now() + durationMs;
+
+    this.sleepTimerId = setInterval(() => {
+      if (!this.sleepTimerTarget) return;
+      const remainingMs = this.sleepTimerTarget - Date.now();
+
+      // Smooth 15-second acoustic volume fade-out
+      if (remainingMs <= 15000 && remainingMs > 0) {
+        const fadeFraction = remainingMs / 15000;
+        const targetVol = this.currentVolume * fadeFraction;
+        this.audio.volume = Math.max(0, targetVol);
+        if (this.ytPlayer && this.isYtReady) {
+          try {
+            this.ytPlayer.setVolume(Math.round(targetVol * 100));
+          } catch {}
+        }
+      }
+
+      if (remainingMs <= 0) {
+        clearInterval(this.sleepTimerId);
+        this.sleepTimerId = null;
+        this.sleepTimerTarget = null;
+        this.sleepOption = null;
+
+        // Pause playback
+        this.audio.pause();
+        if (this.ytPlayer && this.isYtReady) {
+          try {
+            this.ytPlayer.pauseVideo();
+          } catch {}
+        }
+        // Restore volume setting
+        this.setVolume(this.currentVolume);
+
+        if (this.onPlayChangeCb) this.onPlayChangeCb(false);
+        if (this.onSleepTimerTriggerCb) this.onSleepTimerTriggerCb();
+      }
+    }, 1000);
+  }
+
+  public getSleepTimerOption(): SleepTimerOption {
+    return this.sleepOption;
+  }
+
+  public getSleepTimerRemaining(): number | null {
+    if (!this.sleepTimerTarget) return null;
+    const rem = Math.max(0, Math.round((this.sleepTimerTarget - Date.now()) / 1000));
+    return rem;
+  }
+
+  public checkTrackEndSleep(): boolean {
+    if (this.sleepOption === 'track_end') {
+      this.sleepOption = null;
+      this.audio.pause();
+      if (this.ytPlayer && this.isYtReady) {
+        try {
+          this.ytPlayer.pauseVideo();
+        } catch {}
+      }
+      if (this.onPlayChangeCb) this.onPlayChangeCb(false);
+      if (this.onSleepTimerTriggerCb) this.onSleepTimerTriggerCb();
+      return true;
+    }
+    return false;
   }
 
   // Real-time FFT Frequency Data for 48/64 Bar Visualizer

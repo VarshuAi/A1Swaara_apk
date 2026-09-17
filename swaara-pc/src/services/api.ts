@@ -6,33 +6,58 @@ import { CommentsExtractor } from './newpipe/extractors/comments';
 import { ChannelExtractor } from './newpipe/extractors/channel';
 import { parseDurationToSeconds } from './newpipe/utils/helper';
 
-function cleanTrackTitle(title: string): { cleanTitle: string; artistGuess?: string } {
+export function cleanArtistName(rawArtist?: string): string {
+  if (!rawArtist) return 'Independent Artist';
+  const cleaned = rawArtist
+    .replace(/ - Topic$/i, '')
+    .replace(/VEVO$/i, '')
+    .replace(/Official Channel$/i, '')
+    .replace(/Official$/i, '')
+    .trim();
+
+  return cleaned || 'Independent Artist';
+}
+
+export function cleanTrackTitle(title: string): { cleanTitle: string; artistGuess?: string } {
   let cleaned = title
-    .replace(/\(Official.*?\)|\[Official.*?\]/gi, '')
-    .replace(/\(Audio.*?\)|\[Audio.*?\]/gi, '')
-    .replace(/\(Lyric.*?\)|\[Lyric.*?\]/gi, '')
-    .replace(/\(Video.*?\)|\[Video.*?\]/gi, '')
-    .replace(/\(Full Song.*?\)|\[Full Song.*?\]/gi, '')
-    .replace(/\(HD.*?\)|\[HD.*?\]/gi, '')
-    .replace(/\(4K.*?\)|\[4K.*?\]/gi, '')
-    .replace(/\|\s*YouTube Music/gi, '')
+    // Strip promotional bracketed labels
+    .replace(/\((?:Official|Full|Lyric|Lyrical|Music|Video|Audio|HD|4K|8K|UHD|HQ|1080p|Visualizer|Teaser|Trailer|Promo).*?\)/gi, '')
+    .replace(/\[(?:Official|Full|Lyric|Lyrical|Music|Video|Audio|HD|4K|8K|UHD|HQ|1080p|Visualizer|Teaser|Trailer|Promo).*?\]/gi, '')
+    // Strip promotional pipes and trailing suffixes
+    .replace(/\|\s*(?:T-Series|Zee Music|Sony Music|Aditya Music|Tips Official|Saregama|Speed Records|YRF|Lahari Music|Anand Audio|YouTube Music|NewPipe).*?$/gi, '')
+    .replace(/\|\s*Official.*$/gi, '')
+    .replace(/\|\s*Full Song.*$/gi, '')
+    .replace(/\|\s*Audio.*$/gi, '')
+    .replace(/\/\/\s*.*$/gi, '')
     .trim();
 
   // If title has "Artist - Title" format
+  let artistGuess: string | undefined;
   if (cleaned.includes(' - ')) {
     const parts = cleaned.split(' - ');
     if (parts.length >= 2) {
-      return {
-        cleanTitle: parts.slice(1).join(' - ').trim(),
-        artistGuess: parts[0].trim(),
-      };
+      artistGuess = cleanArtistName(parts[0].trim());
+      cleaned = parts.slice(1).join(' - ').trim();
+    }
+  } else if (cleaned.includes(' | ')) {
+    const parts = cleaned.split(' | ');
+    if (parts.length >= 2) {
+      cleaned = parts[0].trim();
     }
   }
 
-  return { cleanTitle: cleaned };
+  // Final cleanup of quotes and stray punctuation
+  cleaned = cleaned
+    .replace(/^["'“”]/, '')
+    .replace(/["'“”]$/, '')
+    .replace(/[-|:]+$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return { cleanTitle: cleaned || title, artistGuess };
 }
 
-// Search tracks via YouTube NewPipe Extractor
+// Search tracks via Lossless Music Extractor
 export async function searchMusic(query: string): Promise<Track[]> {
   if (!query.trim()) return [];
 
@@ -45,7 +70,7 @@ export async function searchMusic(query: string): Promise<Track[]> {
       if (item.type !== 'video') continue;
 
       const { cleanTitle, artistGuess } = cleanTrackTitle(item.title);
-      const artist = artistGuess || item.uploader?.name?.replace(/ - Topic$/i, '') || 'YouTube Artist';
+      const artist = artistGuess || cleanArtistName(item.uploader?.name) || 'Independent Artist';
       const durationSecs = parseDurationToSeconds(item.durationText || '3:30');
 
       // Best thumbnail
@@ -58,14 +83,14 @@ export async function searchMusic(query: string): Promise<Track[]> {
         artist: artist,
         duration: durationSecs,
         artwork: bestThumb,
-        source: 'youtube',
+        source: 'swaara',
         bitrate: '320 kbps',
       });
     }
 
     return tracks;
   } catch (err) {
-    console.error('YouTube NewPipe search failed:', err);
+    console.error('Lossless search error:', err);
     return [];
   }
 }
@@ -149,7 +174,7 @@ export async function fetchSongInsights(trackId: string): Promise<SongInsights> 
     if (streamInfo.relatedVideos && streamInfo.relatedVideos.length > 0) {
       result.relatedTracks = streamInfo.relatedVideos.slice(0, 15).map((v) => {
         const { cleanTitle, artistGuess } = cleanTrackTitle(v.title);
-        const artist = artistGuess || v.uploaderName || 'YouTube Artist';
+        const artist = artistGuess || cleanArtistName(v.uploaderName) || 'Independent Artist';
         const bestThumb = v.thumbnails?.[v.thumbnails.length - 1]?.url ||
           `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;
 
@@ -159,7 +184,7 @@ export async function fetchSongInsights(trackId: string): Promise<SongInsights> 
           artist: artist,
           duration: parseDurationToSeconds(v.duration || '3:30'),
           artwork: bestThumb,
-          source: 'youtube',
+          source: 'swaara',
           bitrate: '320 kbps',
         };
       });
@@ -261,10 +286,10 @@ export async function fetchArtistFullDetails(artistNameOrChannelId: string): Pro
       return {
         id: v.id,
         title: cleanTitle,
-        artist: channelInfo.name || artistName,
+        artist: cleanArtistName(channelInfo.name) || artistName,
         duration: parseDurationToSeconds(v.durationText || '3:30'),
         artwork: bestThumb,
-        source: 'youtube' as const,
+        source: 'swaara' as const,
         bitrate: '320 kbps',
       };
     });

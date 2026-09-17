@@ -13,11 +13,26 @@ export interface Track {
   streamUrl?: string;
   encryptedMediaUrl?: string;
   bitrate?: string;
-  source?: 'youtube';
+  source?: 'swaara' | 'lossless' | 'youtube' | 'local';
   language?: string;
+  genre?: string;
+  mood?: string;
   lyrics?: string;
   syncedLyrics?: SyncedLyricLine[];
   isLiked?: boolean;
+}
+
+export type AlgorithmMode = 'flow' | 'deep_cuts' | 'high_energy' | 'chill';
+
+export type VisualizerMode = 'liquid' | 'cyberpunk' | 'nebula';
+
+export type SleepTimerOption = 15 | 30 | 45 | 60 | 'track_end' | null;
+
+export interface DSPConfig {
+  spatialAudio: boolean;
+  bassHarmonics: boolean;
+  playbackRate: number; // 0.8 to 1.5
+  sleepTimer: SleepTimerOption;
 }
 
 export interface ListenerComment {

@@ -214,7 +214,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   Listening History
                 </p>
                 <p className="text-xs text-[#B3B3B3] truncate mt-0.5">
-                  Recent NewPipe streams
+                  Recent studio sessions
                 </p>
               </div>
             </div>

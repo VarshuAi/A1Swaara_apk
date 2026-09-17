@@ -218,7 +218,7 @@ export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
       // 7. Watermark / Engineered signature
       ctx.font = 'bold 28px "JetBrains Mono", monospace';
       ctx.fillStyle = '#52525B';
-      ctx.fillText('ENGINEERED WITH NEWPIPE · A1 SWAARA', 540, 1720);
+      ctx.fillText('SWAARA MASTER SOUND · QUANTUM LOSSLESS', 540, 1720);
 
       // Trigger high-res file download
       const link = document.createElement('a');
@@ -322,7 +322,7 @@ export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
                 </div>
 
                 <span className="text-[8px] font-mono text-zinc-500 block pt-1 tracking-wider">
-                  320 KBPS AUDIO · NEWPIPE
+                  320 KBPS MASTER · QUANTUM LOSSLESS
                 </span>
               </div>
             </div>

@@ -18,6 +18,10 @@ import {
   Info,
   Disc3,
   Loader2,
+  Sparkles,
+  Radio,
+  Headphones,
+  Gauge,
 } from 'lucide-react';
 import { Track } from '../types/music';
 
@@ -52,6 +56,12 @@ interface PlayerBarProps {
   isInsightsActive?: boolean;
   isQueueActive?: boolean;
   isDownloading?: boolean;
+  isSpatialAudio?: boolean;
+  onToggleSpatialAudio?: () => void;
+  playbackSpeed?: number;
+  onChangeSpeed?: (speed: number) => void;
+  isAutoDJ?: boolean;
+  onToggleAutoDJ?: () => void;
 }
 
 function formatTime(secs: number): string {
@@ -92,6 +102,12 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
   isInsightsActive = false,
   isQueueActive = false,
   isDownloading = false,
+  isSpatialAudio = false,
+  onToggleSpatialAudio,
+  playbackSpeed = 1.0,
+  onChangeSpeed,
+  isAutoDJ = true,
+  onToggleAutoDJ,
 }) => {
   const [isScrubHovered, setIsScrubHovered] = useState(false);
   const [isVolumeHovered, setIsVolumeHovered] = useState(false);
@@ -185,7 +201,23 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
       {/* 2. Center Column: Master Transport Controls & Progress Scrub Bar */}
       <div className="flex flex-col items-center justify-center w-[40%] max-w-[720px] gap-1.5">
         {/* Playback Action Buttons */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4 sm:gap-5">
+          {/* Smart Auto-DJ Flow */}
+          {onToggleAutoDJ && (
+            <button
+              onClick={onToggleAutoDJ}
+              className={`transition-colors cursor-pointer relative ${
+                isAutoDJ ? 'text-[#1ED760]' : 'text-[#B3B3B3] hover:text-white'
+              }`}
+              title={isAutoDJ ? 'Smart AI DJ: Continuous Flow ON' : 'Smart AI DJ: OFF'}
+            >
+              <Radio className="size-4" />
+              {isAutoDJ && (
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 size-1 rounded-full bg-[#1ED760] shadow-[0_0_6px_#1ED760]" />
+              )}
+            </button>
+          )}
+
           {/* Shuffle */}
           <button
             onClick={onToggleShuffle}
@@ -296,6 +328,37 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
 
       {/* 3. Right Column: Studio Tools, Queue, Lyrics, Insights, Volume */}
       <div className="flex items-center justify-end gap-3 w-[30%] min-w-[200px]">
+        {/* Spatial 3D Surround Audio Pill */}
+        {onToggleSpatialAudio && (
+          <button
+            onClick={onToggleSpatialAudio}
+            className={`hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold transition-all cursor-pointer border ${
+              isSpatialAudio
+                ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.3)] scale-105'
+                : 'text-[#888888] hover:text-white border-white/10 hover:border-white/20 bg-white/[0.03]'
+            }`}
+            title={isSpatialAudio ? 'Spatial 3D Audio: ON' : 'Spatial 3D Audio: OFF'}
+          >
+            <Headphones className="size-3" />
+            <span>3D</span>
+          </button>
+        )}
+
+        {/* Playback Speed Controller Pill */}
+        {onChangeSpeed && (
+          <button
+            onClick={() => {
+              const nextRate = playbackSpeed === 1.0 ? 1.25 : playbackSpeed === 1.25 ? 1.5 : playbackSpeed === 1.5 ? 0.8 : 1.0;
+              onChangeSpeed(nextRate);
+            }}
+            className="hidden lg:inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-mono font-bold text-[#A7A7A7] hover:text-white border border-white/10 hover:border-white/20 bg-white/[0.03] transition-all cursor-pointer"
+            title="Cycle Playback Speed (0.8x, 1x, 1.25x, 1.5x)"
+          >
+            <Gauge className="size-3 text-[#1ED760]" />
+            <span>{playbackSpeed}x</span>
+          </button>
+        )}
+
         {/* Karaoke Lyrics */}
         <button
           onClick={onOpenLyrics}
@@ -318,7 +381,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
           <ListMusic className="size-4.5" />
         </button>
 
-        {/* Song Insights & Comments (Rich YouTube Data) */}
+        {/* Song Insights & Acoustic Profile */}
         {onToggleInsights && (
           <button
             onClick={onToggleInsights}

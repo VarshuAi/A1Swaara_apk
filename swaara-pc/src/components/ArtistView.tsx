@@ -387,7 +387,7 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
                 </p>
               ) : (
                 <p className="text-xs sm:text-sm text-[#CCCCCC]">
-                  Verified official YouTube creator and recording artist.
+                  Verified studio recording artist and composer.
                 </p>
               )}
             </div>

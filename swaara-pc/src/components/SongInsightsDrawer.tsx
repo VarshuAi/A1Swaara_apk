@@ -123,7 +123,7 @@ export const SongInsightsDrawer: React.FC<SongInsightsDrawerProps> = ({
         {isLoading ? (
           <div className="py-24 flex flex-col items-center justify-center text-[#B3B3B3] space-y-3">
             <Loader2 className="size-8 animate-spin text-[#1ED760]" />
-            <p className="text-xs font-medium">Fetching YouTube Insights & Comments...</p>
+            <p className="text-xs font-medium">Analyzing Song Insights & Community Pulse...</p>
           </div>
         ) : (
           <>
@@ -149,7 +149,7 @@ export const SongInsightsDrawer: React.FC<SongInsightsDrawerProps> = ({
                   </p>
                 </div>
 
-                {/* YouTube Streaming Analytics Cards */}
+                {/* Studio Streaming Analytics Cards */}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="p-3 rounded-lg bg-[#181818] border border-white/[0.04] space-y-1">
                     <span className="text-[10px] text-[#A7A7A7] uppercase font-bold flex items-center gap-1">
@@ -245,7 +245,7 @@ export const SongInsightsDrawer: React.FC<SongInsightsDrawerProps> = ({
                   <h4 className="text-xs font-bold text-white uppercase tracking-wider">
                     Listener Discussion
                   </h4>
-                  <span className="text-xs text-[#B3B3B3]">Live YouTube Feed</span>
+                  <span className="text-xs text-[#1ED760] font-semibold">Live Community Pulse</span>
                 </div>
 
                 {insights?.comments && insights.comments.length > 0 ? (

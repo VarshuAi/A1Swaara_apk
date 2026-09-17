@@ -104,12 +104,49 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
       {/* 1. Header & Greeting Bar */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
-            {getGreeting()}
-          </h1>
-          <span className="text-xs font-mono text-[#B3B3B3] bg-[#242424] px-3 py-1 rounded-full border border-white/[0.06]">
-            NewPipe 320K Catalog
+          <div>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight">
+              {getGreeting()}
+            </h1>
+            <p className="text-xs text-[#B3B3B3] mt-1">
+              Curated Master Quality Audio · Precision Lossless Soundstage
+            </p>
+          </div>
+          <span className="text-xs font-mono text-[#1ED760] bg-[#1ED760]/10 px-3 py-1 rounded-full border border-[#1ED760]/30 shadow-[0_0_12px_rgba(30,215,96,0.15)] flex items-center gap-1.5 font-bold">
+            <Sparkles className="size-3" />
+            <span>Swaara Master 320K</span>
           </span>
+        </div>
+
+        {/* Smart AI DJ Continuous Flow Banner */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-950/40 via-purple-950/30 to-black/60 border border-white/[0.08] p-5 shadow-2xl backdrop-blur-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="space-y-1.5 max-w-xl z-10">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#1ED760]/20 text-[#1ED760] text-[10px] font-mono font-extrabold uppercase tracking-wider">
+              <Radio className="size-3 animate-pulse" />
+              <span>Smart AI DJ Continuous Flow</span>
+            </div>
+            <h3 className="text-lg font-black text-white tracking-tight">
+              Infinite Harmonic Music Stream
+            </h3>
+            <p className="text-xs text-[#B3B3B3] leading-relaxed">
+              Our neural audio algorithm continuously pairs harmonic melodies, language matrices, and tempo energy so your listening session never stops.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 z-10 shrink-0">
+            {tracks.length > 0 && (
+              <button
+                onClick={() => onPlayTrack(tracks[0])}
+                className="px-5 py-2.5 rounded-full bg-[#1ED760] hover:bg-[#1fdf64] text-black font-extrabold text-xs flex items-center gap-2 shadow-[0_0_24px_rgba(30,215,96,0.4)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              >
+                <Play className="size-4 fill-black" />
+                <span>Start Smart Flow</span>
+              </button>
+            )}
+          </div>
+
+          {/* Ambient decorative glow */}
+          <div className="absolute right-0 top-0 w-64 h-full bg-gradient-to-l from-[#1ED760]/10 to-transparent pointer-events-none" />
         </div>
 
         {/* Filter Chips Pill Row */}
@@ -122,8 +159,8 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 onClick={() => setSelectedMatrix(matrix)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                   isSelected
-                    ? 'bg-white text-black'
-                    : 'bg-[#242424] text-white hover:bg-[#2a2a2a]'
+                    ? 'bg-white text-black shadow-md'
+                    : 'bg-white/[0.06] text-[#CCCCCC] hover:bg-white/[0.12] hover:text-white border border-white/[0.04]'
                 }`}
               >
                 <span>{matrix.name}</span>
@@ -191,7 +228,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
               Trending in {selectedMatrix.name}
             </h2>
             <p className="text-xs text-[#B3B3B3] mt-0.5">
-              Top chart releases streaming directly in 320 kbps Opus
+              Master studio lossless charts streaming in 320 kbps fidelity
             </p>
           </div>
           <span className="text-xs font-bold text-[#B3B3B3] hover:text-white transition-colors cursor-pointer">
@@ -202,7 +239,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
         {isLoading ? (
           <div className="py-20 flex flex-col items-center justify-center text-[#B3B3B3] space-y-3">
             <Loader2 className="size-8 animate-spin text-[#1ED760]" />
-            <p className="text-xs font-medium">Resolving NewPipe Chart...</p>
+            <p className="text-xs font-medium">Curating Studio Charts...</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">

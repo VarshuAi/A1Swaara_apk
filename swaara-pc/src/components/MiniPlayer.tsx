@@ -112,7 +112,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
               >
                 <Heart className={`size-3.5 ${isLiked ? 'fill-[#FF2DAA]' : ''}`} />
               </button>
-              <span className="text-[9px] font-mono text-zinc-500">NewPipe Audio</span>
+              <span className="text-[9px] font-mono text-[#1ED760] font-semibold">Studio Lossless</span>
             </div>
           </div>
         </div>

@@ -81,9 +81,10 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         </div>
 
         {/* Engine Status Tag */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#181818] text-[#B3B3B3] font-mono text-[11px] font-semibold border border-white/[0.06]">
-          <span className="size-2 rounded-full bg-[#1ED760] animate-pulse" />
-          <span>NewPipe 320K</span>
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-[#B3B3B3] font-mono text-[11px] font-semibold border border-white/[0.08] transition-colors">
+          <span className="size-2 rounded-full bg-[#1ED760] animate-pulse shadow-[0_0_8px_#1ED760]" />
+          <span className="text-white font-medium">Swaara Studio</span>
+          <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#1ED760]/15 text-[#1ED760] font-bold">320K LOSSLESS</span>
         </div>
       </div>
 

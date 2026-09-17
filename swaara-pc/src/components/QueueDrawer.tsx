@@ -142,11 +142,11 @@ export const QueueDrawer: React.FC<QueueDrawerProps> = ({
 
       {/* Footer Status */}
       <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[10px] font-mono text-zinc-500">
-        <span className="flex items-center gap-1">
-          <Sparkles className="size-3 text-[#20CFFF]" />
-          <span>NewPipe Auto-Buffer</span>
+        <span className="flex items-center gap-1.5 text-zinc-400">
+          <Sparkles className="size-3 text-[#1ED760] animate-pulse" />
+          <span className="text-white font-medium">Smart DJ Flow Active</span>
         </span>
-        <span className="text-zinc-600">320K OPUS</span>
+        <span className="text-[#1ED760] font-bold">320K LOSSLESS</span>
       </div>
     </div>
   );
