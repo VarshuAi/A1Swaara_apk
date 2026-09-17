@@ -47,6 +47,9 @@ export class HttpClient {
       if (rawUrl.startsWith('https://youtubei.googleapis.com')) {
         return rawUrl.replace('https://youtubei.googleapis.com', '/yti-api');
       }
+      if (rawUrl.startsWith('https://music.youtube.com')) {
+        return rawUrl.replace('https://music.youtube.com', '/ytm-api');
+      }
       if (rawUrl.startsWith('https://www.youtube.com')) {
         return rawUrl.replace('https://www.youtube.com', '/yt-api');
       }

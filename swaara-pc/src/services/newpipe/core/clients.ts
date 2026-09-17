@@ -56,6 +56,14 @@ export const CLIENT_CONSTANTS = {
     USER_AGENT: 'com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X; en_US)',
   },
 
+  // YouTube Music Client (WEB_REMIX) - Clean official songs, albums, and tracks only
+  WEB_REMIX: {
+    NAME: 'WEB_REMIX',
+    VERSION: '1.20240916.01.00',
+    ID: '67',
+    USER_AGENT: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  },
+
   // TV / Cobalt Client
   TV_EMBEDDED: {
     NAME: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
@@ -73,6 +81,8 @@ export class InnerTubeClient {
     SEARCH: 'https://www.youtube.com/youtubei/v1/search',
     NEXT: 'https://www.youtube.com/youtubei/v1/next',
     RESOLVE_URL: 'https://www.youtube.com/youtubei/v1/navigation/resolve_url',
+    YTM_SEARCH: 'https://music.youtube.com/youtubei/v1/search',
+    YTM_NEXT: 'https://music.youtube.com/youtubei/v1/next',
   };
 
   /**
@@ -203,5 +213,55 @@ export class InnerTubeClient {
       if (params) body.params = params;
     }
     return body;
+  }
+
+  /**
+   * Builds YouTube Music WEB_REMIX client context
+   */
+  public static createWebRemixContext(visitorData?: string): InnerTubeClientContext {
+    return {
+      clientName: CLIENT_CONSTANTS.WEB_REMIX.NAME,
+      clientVersion: CLIENT_CONSTANTS.WEB_REMIX.VERSION,
+      clientId: CLIENT_CONSTANTS.WEB_REMIX.ID,
+      visitorData,
+      hl: 'en',
+      gl: 'US',
+    };
+  }
+
+  /**
+   * Headers for YouTube Music requests
+   */
+  public static getYtMusicHeaders(): Record<string, string> {
+    return {
+      'User-Agent': CLIENT_CONSTANTS.WEB_REMIX.USER_AGENT,
+      'Origin': 'https://music.youtube.com',
+      'Referer': 'https://music.youtube.com/',
+      'X-YouTube-Client-Name': CLIENT_CONSTANTS.WEB_REMIX.ID,
+      'X-YouTube-Client-Version': CLIENT_CONSTANTS.WEB_REMIX.VERSION,
+    };
+  }
+
+  /**
+   * Prepares search body specifically for YouTube Music tracks
+   */
+  public static prepareYtMusicSearchBody(query: string, clientContext: InnerTubeClientContext) {
+    return {
+      context: { client: clientContext },
+      query,
+      params: 'Eg-KAQwIARAAGAAgACgAMABqChAMEAMQBBAJEAo%3D', // Strict Songs filter in YouTube Music
+    };
+  }
+
+  /**
+   * Prepares YouTube Music infinite radio queue body for next tracks
+   */
+  public static prepareYtMusicRadioBody(videoId: string, clientContext: InnerTubeClientContext) {
+    return {
+      context: { client: clientContext },
+      videoId,
+      playlistId: `RDAMVM${videoId}`,
+      isAudioOnly: true,
+    };
   }
 }

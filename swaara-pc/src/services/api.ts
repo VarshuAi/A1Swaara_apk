@@ -1,4 +1,5 @@
 import { Track, SyncedLyricLine, SongInsights, ListenerComment, ArtistDetails } from '../types/music';
+import { YTMusicExtractor } from './newpipe/extractors/ytmusic';
 import { SearchExtractor } from './newpipe/extractors/search';
 import { StreamExtractor } from './newpipe/extractors/stream';
 import { TranscriptExtractor } from './newpipe/services/youtube/transcript';
@@ -57,23 +58,44 @@ export function cleanTrackTitle(title: string): { cleanTitle: string; artistGues
   return { cleanTitle: cleaned || title, artistGuess };
 }
 
-// Search tracks via Lossless Music Extractor
+// Blacklist filter to reject non-song video compilations & noise
+const VIDEO_NOISE_REGEX =
+  /\b(?:jukebox|compilation|all\s+songs|full\s+album|non\s*stop|audio\s+jukebox|mega\s*mix|all\s+hit\s+songs|full\s+movie|trailer|teaser|dialogue|interview|podcast|scene|episode|ep\s*\d+|reaction)\b/i;
+
+// Search official tracks via YouTube Music API (WEB_REMIX songs catalog)
 export async function searchMusic(query: string): Promise<Track[]> {
   if (!query.trim()) return [];
 
   try {
-    const result = await SearchExtractor.search(query, { type: 'video' });
+    // 1. Primary Engine: YouTube Music (WEB_REMIX) official songs only
+    const ytmTracks = await YTMusicExtractor.searchSongs(query);
+    if (ytmTracks && ytmTracks.length > 0) {
+      return ytmTracks.map((t) => {
+        const { cleanTitle, artistGuess } = cleanTrackTitle(t.title);
+        return {
+          ...t,
+          title: cleanTitle,
+          artist: artistGuess || cleanArtistName(t.artist),
+        };
+      });
+    }
+
+    // 2. Fallback Engine: Strictly filtered individual song tracks
+    const result = await SearchExtractor.search(`${query} audio song`, { type: 'video' });
     const items = result.items || [];
 
     const tracks: Track[] = [];
     for (const item of items) {
       if (item.type !== 'video') continue;
+      if (VIDEO_NOISE_REGEX.test(item.title)) continue;
+
+      const durationSecs = parseDurationToSeconds(item.durationText || '3:30');
+      // Strictly filter out long videos/jukeboxes (> 8 mins) or tiny clips (< 40s)
+      if (durationSecs > 480 || (durationSecs > 0 && durationSecs < 40)) continue;
 
       const { cleanTitle, artistGuess } = cleanTrackTitle(item.title);
       const artist = artistGuess || cleanArtistName(item.uploader?.name) || 'Independent Artist';
-      const durationSecs = parseDurationToSeconds(item.durationText || '3:30');
 
-      // Best thumbnail
       const bestThumb = item.thumbnails?.[item.thumbnails.length - 1]?.url ||
         `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`;
 
@@ -81,7 +103,7 @@ export async function searchMusic(query: string): Promise<Track[]> {
         id: item.id,
         title: cleanTitle,
         artist: artist,
-        duration: durationSecs,
+        duration: durationSecs || 210,
         artwork: bestThumb,
         source: 'swaara',
         bitrate: '320 kbps',
@@ -93,6 +115,11 @@ export async function searchMusic(query: string): Promise<Track[]> {
     console.error('Lossless search error:', err);
     return [];
   }
+}
+
+// Fetch YouTube Music infinite radio queue for a song
+export async function fetchRadioTracks(videoId: string): Promise<Track[]> {
+  return YTMusicExtractor.getRadioTracks(videoId);
 }
 
 // Resolve direct audio stream using NewPipe Stream Extractor (VisionOS unthrottled pipeline)
@@ -318,14 +345,14 @@ export async function fetchArtistFullDetails(artistNameOrChannelId: string): Pro
 
 // Language Discovery Matrices using YouTube Music searches
 export const LANGUAGE_MATRICES = [
-  { id: 'kannada', name: 'Kannada', script: 'ಕನ್ನಡ', query: 'Top Kannada Songs Official Audio' },
-  { id: 'hindi', name: 'Hindi', script: 'हिन्दी', query: 'Bollywood Top Music Hits 2026 Audio' },
-  { id: 'english', name: 'English', script: 'Global', query: 'Top Global Pop Hits 2026' },
-  { id: 'punjabi', name: 'Punjabi', script: 'ਪੰਜਾਬੀ', query: 'Latest Punjabi Hits Music Tracks' },
-  { id: 'tamil', name: 'Tamil', script: 'தமிழ்', query: 'Latest Tamil Hits Anirudh Audio' },
-  { id: 'telugu', name: 'Telugu', script: 'తెలుగు', query: 'Top Telugu Songs Audio Hits' },
-  { id: 'malayalam', name: 'Malayalam', script: 'മലയാളം', query: 'Top Malayalam Melody Songs Audio' },
-  { id: 'lofi', name: 'Lo-Fi Vibe', script: 'Chill', query: 'Bollywood Lofi Chill Midnight Remix' },
+  { id: 'kannada', name: 'Kannada', script: 'ಕನ್ನಡ', query: 'Top Kannada Songs Hits' },
+  { id: 'hindi', name: 'Hindi', script: 'हिन्दी', query: 'Bollywood Top Hits' },
+  { id: 'english', name: 'English', script: 'Global', query: 'Global Pop Hits 2026' },
+  { id: 'punjabi', name: 'Punjabi', script: 'ਪੰਜਾਬੀ', query: 'Latest Punjabi Hits' },
+  { id: 'tamil', name: 'Tamil', script: 'தமிழ்', query: 'Tamil Top Hits Songs' },
+  { id: 'telugu', name: 'Telugu', script: 'తెలుగు', query: 'Top Telugu Songs' },
+  { id: 'malayalam', name: 'Malayalam', script: 'മലയാളം', query: 'Malayalam Melody Hits' },
+  { id: 'lofi', name: 'Lo-Fi Vibe', script: 'Chill', query: 'Lofi Chill Indian Hits' },
 ];
 
 export async function fetchMatrixTracks(query: string): Promise<Track[]> {

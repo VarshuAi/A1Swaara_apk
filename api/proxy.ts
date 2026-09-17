@@ -48,6 +48,9 @@ export default async function handler(req: Request) {
       } else if (reqUrl.pathname.startsWith('/yti-api/')) {
         const path = reqUrl.pathname.replace(/^\/yti-api\//, '');
         targetUrl = `https://youtubei.googleapis.com/${path}${reqUrl.search}`;
+      } else if (reqUrl.pathname.startsWith('/ytm-api/')) {
+        const path = reqUrl.pathname.replace(/^\/ytm-api\//, '');
+        targetUrl = `https://music.youtube.com/${path}${reqUrl.search}`;
       }
     }
 

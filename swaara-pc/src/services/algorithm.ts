@@ -1,5 +1,5 @@
 import { Track, AlgorithmMode } from '../types/music';
-import { fetchSongInsights, searchMusic } from './api';
+import { fetchSongInsights, searchMusic, fetchRadioTracks } from './api';
 
 // Stopwords to filter out when extracting salient acoustic keywords
 const STOPWORDS = new Set([
@@ -163,39 +163,43 @@ export async function getSmartNextTracks(
   const candidates: Map<string, Track> = new Map();
 
   try {
-    // 1. Fetch related tracks from the streaming graph via Insights
-    const insightsPromise = fetchSongInsights(currentTrack.id)
-      .then((insights) => {
-        if (insights?.relatedTracks) {
-          insights.relatedTracks.forEach((t) => {
-            if (t.id !== currentTrack.id) candidates.set(t.id, t);
-          });
-        }
+    // 1. Primary: Fetch high-affinity tracks from YouTube Music Radio stream
+    const radioPromise = fetchRadioTracks(currentTrack.id)
+      .then((radioTracks) => {
+        radioTracks.forEach((t) => {
+          if (t.id !== currentTrack.id && t.duration > 40 && t.duration <= 480) {
+            candidates.set(t.id, t);
+          }
+        });
       })
       .catch(() => {});
 
-    // 2. Fetch contextually targeted search tracks in parallel based on profile
+    // 2. Fetch contextually targeted persona search tracks based on mode & profile
     const profile = analyzeTrackProfile(currentTrack);
-    let contextualQuery = `${currentTrack.artist} similar hits`;
+    let contextualQuery = `${currentTrack.artist} top songs`;
     if (mode === 'high_energy') {
       contextualQuery = `${currentTrack.artist} dance party songs`;
     } else if (mode === 'chill') {
       contextualQuery = `${currentTrack.artist} lofi acoustic melody`;
     } else if (mode === 'vocal_acoustic') {
-      contextualQuery = `${currentTrack.artist} unplugged acoustic songs`;
+      contextualQuery = `${currentTrack.artist} acoustic unplugged songs`;
+    } else if (mode === 'deep_cuts') {
+      contextualQuery = `${currentTrack.artist} rare live acoustic`;
     } else if (profile.languageOrRegion) {
-      contextualQuery = `${currentTrack.artist} ${profile.languageOrRegion} top songs`;
+      contextualQuery = `${currentTrack.artist} ${profile.languageOrRegion} songs`;
     }
 
     const searchPromise = searchMusic(contextualQuery)
       .then((results) => {
         results.forEach((t) => {
-          if (t.id !== currentTrack.id) candidates.set(t.id, t);
+          if (t.id !== currentTrack.id && t.duration > 40 && t.duration <= 480) {
+            candidates.set(t.id, t);
+          }
         });
       })
       .catch(() => {});
 
-    await Promise.allSettled([insightsPromise, searchPromise]);
+    await Promise.allSettled([radioPromise, searchPromise]);
   } catch (err) {
     console.warn('Recommendation algorithm pipeline encountered warning:', err);
   }

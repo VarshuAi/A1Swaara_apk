@@ -37,6 +37,19 @@ export default defineConfig({
           Cookie: 'SOCS=CAESEwgDEgk2OTc3NjExMDUaAmVuIAEaBgiA_K-0Bg; CONSENT=PENDING+999',
         },
       },
+      '/ytm-api': {
+        target: 'https://music.youtube.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/ytm-api/, ''),
+        headers: {
+          Origin: 'https://music.youtube.com',
+          Referer: 'https://music.youtube.com/',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+          Cookie: 'SOCS=CAESEwgDEgk2OTc3NjExMDUaAmVuIAEaBgiA_K-0Bg; CONSENT=PENDING+999',
+        },
+      },
     },
   },
 });

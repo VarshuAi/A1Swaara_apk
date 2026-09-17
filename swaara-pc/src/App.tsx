@@ -184,35 +184,35 @@ export function App() {
       return;
     }
 
-    // In a browser (Vercel / web), start playing track IMMEDIATELY on user click
-    // to guarantee user activation is preserved and avoid any browser autoplay block!
-    const isWeb = typeof window !== 'undefined' && !(window as any).electronAPI?.isElectron;
-    if (isWeb) {
-      audioEngine.playTrack(track);
-    }
+    const isElectron = typeof window !== 'undefined' && Boolean((window as any).electronAPI?.isElectron);
 
-    try {
-      // In Electron or background: attempt resolving high-fidelity 320 kbps stream URL
-      const resolved = await resolveTrackStream(track);
-      setCurrentTrack(resolved);
-
-      // In Electron, or if direct stream URL was newly extracted, play via direct engine
-      if (!isWeb || resolved.streamUrl) {
+    if (isElectron) {
+      try {
+        const resolved = await resolveTrackStream(track);
+        setCurrentTrack(resolved);
         await audioEngine.playTrack(resolved);
+        setIsLoading(false);
+
+        storage.addToHistory(resolved);
+        setHistorySongs(storage.getHistory());
+        fetchLyrics(resolved.id).then((lyr) => setLyrics(lyr));
+      } catch (err) {
+        console.error('Track playback failure:', err);
+        await audioEngine.playTrack(track);
+        setIsLoading(false);
       }
-      setIsLoading(false);
-
-      // Save to history
-      storage.addToHistory(resolved);
-      setHistorySongs(storage.getHistory());
-
-      // Fetch lyrics
-      fetchLyrics(resolved.id).then((lyr) => {
-        setLyrics(lyr);
-      });
-    } catch (err) {
-      console.error('Track playback failure:', err);
-      setIsLoading(false);
+    } else {
+      // In Web Browser: Start playback immediately without CORS double-load glitch
+      try {
+        await audioEngine.playTrack(track);
+        setIsLoading(false);
+        storage.addToHistory(track);
+        setHistorySongs(storage.getHistory());
+        fetchLyrics(track.id).then((lyr) => setLyrics(lyr));
+      } catch (err) {
+        console.error('Web playback failure:', err);
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -268,16 +268,16 @@ export function App() {
     }
   }, [currentTime, historySongs, handlePlayTrack]);
 
-  // Pre-fetch next tracks with Smart DJ when queue <= 1 to ensure seamless continuous play
+  // Automatically pre-fill queue with high-affinity YouTube Music songs so autoplay NEVER stalls
   useEffect(() => {
-    if (!isAutoDJ || !currentTrack || queue.length > 1) return;
+    if (!isAutoDJ || !currentTrack || currentTrack.source === 'local') return;
 
-    if (duration > 0 && duration - currentTime < 25) {
-      getSmartNextTracks(currentTrack, historySongs, likedSongs, 4, algorithmMode)
+    if (queue.length < 4) {
+      getSmartNextTracks(currentTrack, historySongs, likedSongs, 6, algorithmMode)
         .then((recs) => {
           if (recs.length > 0) {
             setQueue((prev) => {
-              const existingIds = new Set(prev.map((t) => t.id));
+              const existingIds = new Set([currentTrack.id, ...prev.map((t) => t.id)]);
               const fresh = recs.filter((t) => !existingIds.has(t.id));
               return [...prev, ...fresh];
             });
@@ -285,7 +285,7 @@ export function App() {
         })
         .catch(() => {});
     }
-  }, [currentTime, duration, isAutoDJ, currentTrack, queue.length, historySongs, likedSongs, algorithmMode]);
+  }, [currentTrack?.id, isAutoDJ, algorithmMode, queue.length, historySongs, likedSongs]);
 
   // Audio DSP & Pro Handlers
   const handleToggleSpatialAudio = () => {
