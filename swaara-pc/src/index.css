@@ -2,27 +2,23 @@
 
 @layer base {
   :root {
-    /* Obsidian Luxury Studio Theme Tokens */
-    --swaara-bg-base: #050508;
-    --swaara-bg-surface: rgba(13, 13, 20, 0.75);
-    --swaara-bg-elevated: rgba(20, 20, 32, 0.88);
-    --swaara-bg-card: rgba(255, 255, 255, 0.035);
-    --swaara-bg-card-hover: rgba(255, 255, 255, 0.075);
+    /* Swaara Calm Editorial Dark Palette */
+    --swaara-bg-base: #080809;
+    --swaara-bg-surface: #111113;
+    --swaara-bg-elevated: #18181B;
+    --swaara-bg-subtle: #202024;
 
-    --swaara-neon-green: #00F59B;
-    --swaara-spotify-green: #1ED760;
-    --swaara-purple: #8B35FF;
-    --swaara-pink: #FF2DAA;
-    --swaara-cyan: #20CFFF;
-    --swaara-amber: #FFB347;
+    /* Single Restrained Accent */
+    --swaara-accent: #10B981;
+    --swaara-accent-hover: #059669;
+    --swaara-accent-subtle: rgba(16, 185, 129, 0.12);
 
-    --swaara-text-primary: #FFFFFF;
-    --swaara-text-secondary: #B3B3C2;
-    --swaara-text-muted: #626278;
+    --swaara-text-primary: #F4F4F5;
+    --swaara-text-secondary: #A1A1AA;
+    --swaara-text-muted: #71717A;
 
-    --swaara-border: rgba(255, 255, 255, 0.08);
-    --swaara-border-hover: rgba(255, 255, 255, 0.18);
-    --swaara-border-glow: rgba(0, 245, 155, 0.35);
+    --swaara-border: rgba(255, 255, 255, 0.07);
+    --swaara-border-hover: rgba(255, 255, 255, 0.14);
   }
 
   body {
@@ -45,91 +41,22 @@
   -webkit-app-region: no-drag;
 }
 
-/* Glassmorphism Surface Utility */
-.glass-panel {
-  background: rgba(13, 13, 20, 0.72);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+/* Restrained Surface Utilities */
+.surface-card {
+  background-color: var(--swaara-bg-surface);
+  border: 1px solid var(--swaara-border);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.glass-panel-elevated {
-  background: rgba(18, 18, 28, 0.88);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+.surface-card:hover {
+  background-color: var(--swaara-bg-elevated);
+  border-color: var(--swaara-border-hover);
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-card:hover {
-  background: rgba(255, 255, 255, 0.065);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-}
-
-.glass-pill {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.2s ease;
-}
-
-.glass-pill:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.16);
-}
-
-.glass-pill-active {
-  background: rgba(0, 245, 155, 0.12);
-  border-color: rgba(0, 245, 155, 0.35);
-  color: #00F59B;
-  box-shadow: 0 0 20px rgba(0, 245, 155, 0.15);
-}
-
-/* Ambient Radial Glow Animations */
-@keyframes ambientFloat1 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.25;
-  }
-  50% {
-    transform: translate(30px, -20px) scale(1.1);
-    opacity: 0.35;
-  }
-}
-
-@keyframes ambientFloat2 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.2;
-  }
-  50% {
-    transform: translate(-30px, 20px) scale(1.08);
-    opacity: 0.3;
-  }
-}
-
-.animate-ambient-1 {
-  animation: ambientFloat1 18s ease-in-out infinite;
-}
-
-.animate-ambient-2 {
-  animation: ambientFloat2 22s ease-in-out infinite;
-}
-
-/* Custom Minimalist Studio Scrollbars */
+/* Minimal Discrete Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -137,61 +64,31 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.22);
 }
 
-/* Range input styling for Swaara Player */
+/* Range input styling */
 input[type="range"] {
-  accent-color: #00F59B;
+  accent-color: #10B981;
 }
 
-input[type="range"]::-webkit-slider-thumb {
-  transition: transform 0.1s ease;
-}
-
-input[type="range"]:hover::-webkit-slider-thumb {
-  transform: scale(1.25);
-}
-
-/* Spin animations */
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin-slow {
-  animation: spin-slow 12s linear infinite;
-}
-
-/* Equalizer Bouncing Wave Bar Animation */
-@keyframes eqBarBounce {
+/* Subtle Playing Animation */
+@keyframes subtleBar {
   0%, 100% {
     height: 4px;
   }
   50% {
-    height: 18px;
+    height: 14px;
   }
 }
 
-.animate-eq-1 {
-  animation: eqBarBounce 0.8s ease-in-out infinite;
-}
-.animate-eq-2 {
-  animation: eqBarBounce 0.6s ease-in-out infinite 0.15s;
-}
-.animate-eq-3 {
-  animation: eqBarBounce 1.0s ease-in-out infinite 0.3s;
-}
-.animate-eq-4 {
-  animation: eqBarBounce 0.7s ease-in-out infinite 0.45s;
-}
+.animate-bar-1 { animation: subtleBar 0.8s ease-in-out infinite; }
+.animate-bar-2 { animation: subtleBar 0.6s ease-in-out infinite 0.15s; }
+.animate-bar-3 { animation: subtleBar 1.0s ease-in-out infinite 0.3s; }
+.animate-bar-4 { animation: subtleBar 0.7s ease-in-out infinite 0.45s; }
 

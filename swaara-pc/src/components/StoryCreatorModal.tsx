@@ -155,11 +155,11 @@ export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
     ctx.font = 'bold 36px Inter, sans-serif';
     ctx.fillStyle = activePalette.from;
     ctx.textAlign = 'center';
-    ctx.fillText('A1 SWAARA PRO', 540, 240);
+    ctx.fillText('SWAARA', 540, 240);
 
-    ctx.font = '26px "JetBrains Mono", monospace';
+    ctx.font = '22px Inter, sans-serif';
     ctx.fillStyle = '#9CA3AF';
-    ctx.fillText('PURE 320 KBPS HIGH-FIDELITY MASTER', 540, 290);
+    ctx.fillText('MUSIC PLAYER', 540, 290);
 
     // 4. Load & Draw Artwork
     const img = new Image();
@@ -215,10 +215,10 @@ export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
         ctx.fill();
       }
 
-      // 7. Watermark / Engineered signature
-      ctx.font = 'bold 28px "JetBrains Mono", monospace';
-      ctx.fillStyle = '#52525B';
-      ctx.fillText('SWAARA MASTER SOUND · QUANTUM LOSSLESS', 540, 1720);
+      // 7. Watermark / Clean signature
+      ctx.font = '24px Inter, sans-serif';
+      ctx.fillStyle = '#71717A';
+      ctx.fillText('SWAARA MUSIC PLAYER', 540, 1720);
 
       // Trigger high-res file download
       const link = document.createElement('a');
@@ -237,45 +237,35 @@ export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 select-none animate-fadeIn">
-      <div className="relative w-full max-w-2xl rounded-[32px] bg-[#0C0C14] border border-white/15 p-6 sm:p-8 shadow-[0_25px_70px_rgba(0,0,0,0.9)] space-y-6 overflow-hidden">
-        {/* Specular Ambient Glow */}
-        <div className="absolute top-0 right-1/4 w-80 h-40 bg-[#FF2DAA]/15 rounded-full blur-3xl pointer-events-none" />
-
+      <div className="relative w-full max-w-2xl rounded-2xl bg-[#111113] border border-white/[0.08] p-6 shadow-2xl space-y-5 overflow-hidden">
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-          <div className="flex items-center gap-3.5">
-            <div className="size-11 rounded-2xl bg-gradient-to-tr from-[#20CFFF] to-[#8B35FF] p-[1.5px] shadow-lg shadow-cyan-500/25">
-              <div className="size-full bg-[#0E0E18] rounded-[14.5px] flex items-center justify-center">
-                <Share2 className="size-5 text-white" />
-              </div>
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3.5">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-xl bg-[#18181B] border border-white/[0.08] flex items-center justify-center text-[#10B981]">
+              <Share2 className="size-4.5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-black text-white tracking-tight">Social Share Studio</h2>
-                <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-[#20CFFF] border border-cyan-500/40 text-[10px] font-mono font-bold tracking-wider">
-                  9:16 PRO CANVAS
-                </span>
-              </div>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                Generate high-res Instagram/TikTok stories and 60-char vibe notes
+              <h2 className="text-base font-bold text-white tracking-tight">Share Song</h2>
+              <p className="text-xs text-[#8E8E93]">
+                Create a story card or share track links
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-zinc-400 hover:text-white transition-all cursor-pointer"
+            className="p-1.5 rounded-lg text-[#8E8E93] hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
           >
-            <X className="size-5" />
+            <X className="size-4.5" />
           </button>
         </div>
 
-        {/* Two-Column Studio Layout */}
+        {/* Two-Column Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           {/* Left Column: 9:16 Preview Card */}
           <div className="flex justify-center">
             <div
-              className={`w-56 aspect-[9/16] rounded-3xl bg-gradient-to-b ${activePalette.bg} border border-white/20 p-4 shadow-2xl flex flex-col justify-between items-center text-center relative overflow-hidden`}
+              className={`w-52 aspect-[9/16] rounded-2xl bg-gradient-to-b ${activePalette.bg} border border-white/20 p-4 shadow-xl flex flex-col justify-between items-center text-center relative overflow-hidden`}
             >
               {/* Internal Glow Orbs */}
               <div
@@ -288,27 +278,27 @@ export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
               />
 
               {/* Card Header */}
-              <div className="relative z-10 pt-2">
+              <div className="relative z-10 pt-1">
                 <span
-                  className="text-[10px] font-mono font-extrabold tracking-widest uppercase"
+                  className="text-[10px] font-mono font-bold tracking-widest uppercase"
                   style={{ color: activePalette.from }}
                 >
-                  A1 Swaara Pro
+                  SWAARA
                 </span>
               </div>
 
               {/* Artwork Cover */}
-              <div className="relative z-10 size-32 rounded-2xl overflow-hidden shadow-2xl border border-white/25 my-auto bg-zinc-900 group">
+              <div className="relative z-10 size-28 rounded-xl overflow-hidden shadow-xl border border-white/20 my-auto bg-zinc-900 group">
                 <img src={track.artwork} alt={track.title} className="size-full object-cover" />
               </div>
 
               {/* Track Info & Spectrum */}
-              <div className="relative z-10 w-full space-y-2 pb-2">
+              <div className="relative z-10 w-full space-y-1.5 pb-1">
                 <h4 className="font-bold text-xs text-white truncate px-1">{cleanTitle}</h4>
                 <p className="text-[10px] text-zinc-400 truncate">{track.artist}</p>
 
                 {/* Animated Spectrum Simulation */}
-                <div className="flex items-end justify-center gap-0.5 h-6 pt-1">
+                <div className="flex items-end justify-center gap-0.5 h-5 pt-0.5">
                   {[35, 75, 50, 95, 80, 45, 90, 60, 85, 45, 70, 50].map((h, i) => (
                     <span
                       key={i}
@@ -321,8 +311,8 @@ export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
                   ))}
                 </div>
 
-                <span className="text-[8px] font-mono text-zinc-500 block pt-1 tracking-wider">
-                  320 KBPS MASTER · QUANTUM LOSSLESS
+                <span className="text-[8px] text-zinc-400 block pt-0.5 tracking-wider uppercase">
+                  Swaara Music
                 </span>
               </div>
             </div>
@@ -415,10 +405,10 @@ export const StoryCreatorModal: React.FC<StoryCreatorModalProps> = ({
             <button
               onClick={handleExportCard}
               disabled={isExporting}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-gradient-to-r from-[#FF2DAA] via-[#8B35FF] to-[#20CFFF] text-white font-bold text-xs shadow-xl shadow-pink-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#10B981] hover:bg-[#059669] text-black font-semibold text-xs shadow-md transition-colors cursor-pointer"
             >
               <Download className="size-4" />
-              <span>{isExporting ? 'Rendering HD Card...' : 'Export 9:16 Story (1080x1920 PNG)'}</span>
+              <span>{isExporting ? 'Rendering Card...' : 'Export 9:16 Story (1080x1920 PNG)'}</span>
             </button>
 
             {/* Copy Share Link */}

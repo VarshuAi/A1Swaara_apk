@@ -561,12 +561,8 @@ export function App() {
   }
 
   return (
-    <div className="h-screen w-screen bg-[#050508] text-white flex flex-col justify-between overflow-hidden relative selection:bg-[#00F59B] selection:text-black font-sans">
-      {/* Dynamic Ambient Glow Orbs behind the layout */}
-      <div className="pointer-events-none absolute -top-40 -left-40 size-[550px] rounded-full bg-gradient-to-br from-[#00F59B]/10 to-[#20CFFF]/5 blur-[120px] animate-ambient-1 z-0" />
-      <div className="pointer-events-none absolute -bottom-40 -right-40 size-[550px] rounded-full bg-gradient-to-br from-[#8B35FF]/10 to-[#FF2DAA]/5 blur-[120px] animate-ambient-2 z-0" />
-
-      {/* Frameless Obsidian Custom Title Bar */}
+    <div className="h-screen w-screen bg-[#080809] text-[#F4F4F5] flex flex-col justify-between overflow-hidden relative selection:bg-[#10B981] selection:text-black font-sans">
+      {/* Frameless Title Bar */}
       <TitleBar
         currentTrack={currentTrack}
         isPlaying={isPlaying}
@@ -582,8 +578,8 @@ export function App() {
         canGoForward={navIndex < navHistory.length - 1}
       />
 
-      {/* Main Center Layout (Obsidian Glass 2-Tier Master Grid) */}
-      <div className="flex-1 flex overflow-hidden relative p-2 gap-2 bg-[#050508]/60 backdrop-blur-md z-10">
+      {/* Main Layout: Slim Navigation + Continuous Content */}
+      <div className="flex-1 flex overflow-hidden relative bg-[#080809]">
         {/* Navigation Sidebar */}
         <Sidebar
           activeTab={activeTab}
@@ -599,8 +595,8 @@ export function App() {
           hasTrack={!!currentTrack}
         />
 
-        {/* Dynamic Center Viewport in Rounded Obsidian Frame */}
-        <main className="flex-1 h-full overflow-hidden flex flex-col glass-panel rounded-2xl relative shadow-2xl">
+        {/* Continuous Center Viewport */}
+        <main className="flex-1 h-full overflow-hidden flex flex-col bg-[#0B0B0D] relative border-l border-white/[0.05]">
           {isNowPlayingOpen && currentTrack ? (
             <NowPlayingView
               track={currentTrack}
@@ -793,8 +789,8 @@ export function App() {
 
       {/* Floating Status Toast */}
       {toastMessage && (
-        <div className="fixed bottom-24 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-[#141420]/95 border border-pink-500/30 text-white shadow-2xl backdrop-blur-xl text-xs font-semibold animate-slideUp">
-          <CheckCircle2 className="size-4 text-[#FF2DAA]" />
+        <div className="fixed bottom-24 right-6 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#18181B] border border-white/[0.12] text-white shadow-xl text-xs font-medium animate-slideUp">
+          <CheckCircle2 className="size-4 text-[#10B981]" />
           <span>{toastMessage}</span>
         </div>
       )}
