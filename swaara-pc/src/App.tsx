@@ -58,6 +58,7 @@ export function App() {
   const [likedSongs, setLikedSongs] = useState<Track[]>(storage.getLikedSongs());
   const [historySongs, setHistorySongs] = useState<Track[]>(storage.getHistory());
   const [downloadedSongs, setDownloadedSongs] = useState<Track[]>(storage.getDownloads());
+  const [localTracks, setLocalTracks] = useState<Track[]>([]);
   const [activeEqPreset, setActiveEqPreset] = useState<string>(storage.getSavedEqPreset());
   const [lyrics, setLyrics] = useState<{ text: string; synced: SyncedLyricLine[] }>({ text: '', synced: [] });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -125,10 +126,63 @@ export function App() {
     navigateTo('artist', artistNameOrChannelId);
   }, [navigateTo]);
 
+  // Import local PC studio files directly into lossless player
+  const handleImportLocalFiles = useCallback((files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    const audioFiles = fileArray.filter(
+      (f) => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|flac|m4a|aac|opus)$/i.test(f.name)
+    );
+    if (audioFiles.length === 0) {
+      showToast('No compatible audio files found in selection');
+      return;
+    }
+
+    const newTracks: Track[] = audioFiles.map((file, idx) => {
+      const cleanName = file.name.replace(/\.[^/.]+$/, '');
+      const parts = cleanName.split(' - ');
+      const artist = parts.length > 1 ? parts[0].trim() : 'Studio Master';
+      const title = parts.length > 1 ? parts.slice(1).join(' - ').trim() : cleanName;
+      const streamUrl = URL.createObjectURL(file);
+
+      return {
+        id: `local-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
+        title,
+        artist,
+        album: 'PC Local Studio',
+        artwork: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&h=300&fit=crop',
+        duration: 0,
+        streamUrl,
+        source: 'local',
+        isLiked: false,
+      };
+    });
+
+    setLocalTracks((prev) => [...newTracks, ...prev]);
+    showToast(`Loaded ${newTracks.length} lossless local track${newTracks.length > 1 ? 's' : ''} ⚡`);
+  }, []);
+
   // Play a specific track
   const handlePlayTrack = useCallback(async (track: Track) => {
     setIsLoading(true);
     setCurrentTrack(track);
+
+    // Route local PC studio files through Web Audio 10-Band EQ & Spatial DSP
+    if (track.source === 'local' && track.streamUrl) {
+      try {
+        await audioEngine.playLocalFile(track.streamUrl, track);
+        setIsLoading(false);
+        storage.addToHistory(track);
+        setHistorySongs(storage.getHistory());
+        setLyrics({
+          text: 'Studio Offline Master Audio\nRouted through Swaara 10-band EQ & Spatial 3D DSP Graph',
+          synced: [],
+        });
+      } catch (err) {
+        console.error('Local file playback failure:', err);
+        setIsLoading(false);
+      }
+      return;
+    }
 
     // In a browser (Vercel / web), start playing track IMMEDIATELY on user click
     // to guarantee user activation is preserved and avoid any browser autoplay block!
@@ -415,17 +469,25 @@ export function App() {
           e.preventDefault();
           handleToggleFullscreen();
           break;
+        case 'KeyL':
+          e.preventDefault();
+          handleToggleLike();
+          break;
+        case 'KeyE':
+          e.preventDefault();
+          setIsEqualizerOpen((prev) => !prev);
+          break;
+        case 'KeyQ':
+          e.preventDefault();
+          setIsQueueOpen((prev) => !prev);
+          break;
         case 'KeyN':
-          if (e.shiftKey) {
-            e.preventDefault();
-            handleNext();
-          }
+          e.preventDefault();
+          handleNext();
           break;
         case 'KeyP':
-          if (e.shiftKey) {
-            e.preventDefault();
-            handlePrev();
-          }
+          e.preventDefault();
+          handlePrev();
           break;
         case 'Escape':
           setIsEqualizerOpen(false);
@@ -442,7 +504,7 @@ export function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentTime, volume, handleNext, handlePrev, isFullscreen]);
+  }, [currentTime, volume, handleNext, handlePrev, isFullscreen, handleToggleLike]);
 
   // Fullscreen toggle
   const handleToggleFullscreen = () => {
@@ -499,7 +561,11 @@ export function App() {
   }
 
   return (
-    <div className="h-screen w-screen bg-[#000000] text-white flex flex-col justify-between overflow-hidden relative selection:bg-[#1ED760] selection:text-black font-sans">
+    <div className="h-screen w-screen bg-[#050508] text-white flex flex-col justify-between overflow-hidden relative selection:bg-[#00F59B] selection:text-black font-sans">
+      {/* Dynamic Ambient Glow Orbs behind the layout */}
+      <div className="pointer-events-none absolute -top-40 -left-40 size-[550px] rounded-full bg-gradient-to-br from-[#00F59B]/10 to-[#20CFFF]/5 blur-[120px] animate-ambient-1 z-0" />
+      <div className="pointer-events-none absolute -bottom-40 -right-40 size-[550px] rounded-full bg-gradient-to-br from-[#8B35FF]/10 to-[#FF2DAA]/5 blur-[120px] animate-ambient-2 z-0" />
+
       {/* Frameless Obsidian Custom Title Bar */}
       <TitleBar
         currentTrack={currentTrack}
@@ -516,8 +582,8 @@ export function App() {
         canGoForward={navIndex < navHistory.length - 1}
       />
 
-      {/* Main Center Layout (Spotify 2-Tier Master Grid) */}
-      <div className="flex-1 flex overflow-hidden relative p-2 gap-2 bg-[#000000]">
+      {/* Main Center Layout (Obsidian Glass 2-Tier Master Grid) */}
+      <div className="flex-1 flex overflow-hidden relative p-2 gap-2 bg-[#050508]/60 backdrop-blur-md z-10">
         {/* Navigation Sidebar */}
         <Sidebar
           activeTab={activeTab}
@@ -533,8 +599,8 @@ export function App() {
           hasTrack={!!currentTrack}
         />
 
-        {/* Dynamic Center Viewport in Rounded Spotify Frame */}
-        <main className="flex-1 h-full overflow-hidden flex flex-col bg-[#121212] rounded-lg relative">
+        {/* Dynamic Center Viewport in Rounded Obsidian Frame */}
+        <main className="flex-1 h-full overflow-hidden flex flex-col bg-[#0B0B14]/90 backdrop-blur-2xl border border-white/[0.08] rounded-2xl relative shadow-2xl">
           {isNowPlayingOpen && currentTrack ? (
             <NowPlayingView
               track={currentTrack}
@@ -576,6 +642,11 @@ export function App() {
               likedSongIds={likedSongIds}
               onDownloadTrack={handleDownloadTrack}
               onOpenArtist={handleOpenArtist}
+              algorithmMode={algorithmMode}
+              onChangeAlgorithmMode={(mode) => {
+                setAlgorithmMode(mode);
+                showToast(`Harmonic Engine Mode: ${mode.toUpperCase()} ⚡`);
+              }}
             />
           ) : activeTab === 'search' ? (
             <SearchView
@@ -588,16 +659,39 @@ export function App() {
               onDownloadTrack={handleDownloadTrack}
               onOpenArtist={handleOpenArtist}
             />
+          ) : activeTab === 'local' ? (
+            <LibraryView
+              likedSongs={likedSongs}
+              historySongs={historySongs}
+              downloadedSongs={downloadedSongs}
+              localTracks={localTracks}
+              onPlayTrack={handlePlayTrack}
+              onPlayAll={handlePlayAll}
+              onToggleLike={handleToggleLike}
+              onDownloadTrack={handleDownloadTrack}
+              onImportLocalFiles={handleImportLocalFiles}
+              initialSubTab="local"
+            />
           ) : (
             <LibraryView
               likedSongs={likedSongs}
               historySongs={historySongs}
               downloadedSongs={downloadedSongs}
+              localTracks={localTracks}
               onPlayTrack={handlePlayTrack}
               onPlayAll={handlePlayAll}
               onToggleLike={handleToggleLike}
               onDownloadTrack={handleDownloadTrack}
-              initialSubTab={activeTab === 'liked' ? 'liked' : activeTab === 'downloads' ? 'downloads' : 'liked'}
+              onImportLocalFiles={handleImportLocalFiles}
+              initialSubTab={
+                activeTab === 'liked'
+                  ? 'liked'
+                  : activeTab === 'downloads'
+                  ? 'downloads'
+                  : activeTab === 'history'
+                  ? 'history'
+                  : 'liked'
+              }
             />
           )}
         </main>
@@ -673,6 +767,11 @@ export function App() {
         onChangeSpeed={handleChangeSpeed}
         isAutoDJ={isAutoDJ}
         onToggleAutoDJ={handleToggleAutoDJ}
+        algorithmMode={algorithmMode}
+        onChangeAlgorithmMode={(mode) => {
+          setAlgorithmMode(mode);
+          showToast(`Harmonic Engine Mode: ${mode.toUpperCase()} ⚡`);
+        }}
       />
 
       {/* Modals */}

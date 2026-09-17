@@ -134,14 +134,18 @@ export function calculateTrackAffinity(
   if (mode === 'deep_cuts') {
     // Reward novel artists not in the current history
     const inHistory = history.some((h) => h.artist.toLowerCase() === candArtistClean);
-    if (!inHistory) score += 30;
+    if (!inHistory) score += 35;
   } else if (mode === 'high_energy') {
     if (candProfile.mood === 'party' || candProfile.mood === 'energetic') {
-      score += 35;
+      score += 40;
     }
   } else if (mode === 'chill') {
     if (candProfile.mood === 'chill' || candProfile.languageOrRegion === 'lofi') {
-      score += 35;
+      score += 40;
+    }
+  } else if (mode === 'vocal_acoustic') {
+    if (candProfile.mood === 'romantic' || candProfile.mood === 'melancholic' || candProfile.keywords.some(k => ['acoustic', 'unplugged', 'melody', 'soul', 'voice'].includes(k))) {
+      score += 40;
     }
   }
 
@@ -177,6 +181,8 @@ export async function getSmartNextTracks(
       contextualQuery = `${currentTrack.artist} dance party songs`;
     } else if (mode === 'chill') {
       contextualQuery = `${currentTrack.artist} lofi acoustic melody`;
+    } else if (mode === 'vocal_acoustic') {
+      contextualQuery = `${currentTrack.artist} unplugged acoustic songs`;
     } else if (profile.languageOrRegion) {
       contextualQuery = `${currentTrack.artist} ${profile.languageOrRegion} top songs`;
     }

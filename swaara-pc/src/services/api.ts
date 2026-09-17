@@ -128,7 +128,7 @@ export async function resolveTrackStream(track: Track): Promise<Track> {
       return track;
     }
   } catch (err) {
-    console.error('Failed to extract audio stream via NewPipe:', err);
+    console.error('Failed to extract studio lossless stream:', err);
   }
 
   return track;

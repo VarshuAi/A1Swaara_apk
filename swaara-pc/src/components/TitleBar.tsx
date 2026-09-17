@@ -53,16 +53,16 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   const handleClose = () => window.electronAPI?.close();
 
   return (
-    <header className="h-12 w-full bg-[#000000] border-b border-[#181818] flex items-center justify-between px-4 select-none drag-region z-50 text-xs text-[#B3B3B3]">
+    <header className="h-12 w-full bg-[#050508]/95 backdrop-blur-2xl border-b border-white/[0.08] flex items-center justify-between px-4 select-none drag-region z-50 text-xs text-[#9A9AA8]">
       {/* Left: Window History Navigation Buttons & Brand */}
       <div className="flex items-center gap-3 no-drag">
         {/* Navigation History Arrows */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={onNavigateBack || (() => window.history.back())}
             disabled={canGoBack === false}
-            className={`size-8 rounded-full bg-[#090909] text-[#B3B3B3] flex items-center justify-center transition-colors cursor-pointer ${
-              canGoBack === false ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#1a1a1a] hover:text-white'
+            className={`size-7.5 rounded-full bg-white/[0.04] text-[#9A9AA8] flex items-center justify-center transition-colors cursor-pointer border border-white/5 ${
+              canGoBack === false ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/[0.1] hover:text-white'
             }`}
             title="Go back"
           >
@@ -71,8 +71,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           <button
             onClick={onNavigateForward || (() => window.history.forward())}
             disabled={canGoForward === false}
-            className={`size-8 rounded-full bg-[#090909] text-[#B3B3B3] flex items-center justify-center transition-colors cursor-pointer ${
-              canGoForward === false ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#1a1a1a] hover:text-white'
+            className={`size-7.5 rounded-full bg-white/[0.04] text-[#9A9AA8] flex items-center justify-center transition-colors cursor-pointer border border-white/5 ${
+              canGoForward === false ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/[0.1] hover:text-white'
             }`}
             title="Go forward"
           >
@@ -81,10 +81,10 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         </div>
 
         {/* Engine Status Tag */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-[#B3B3B3] font-mono text-[11px] font-semibold border border-white/[0.08] transition-colors">
-          <span className="size-2 rounded-full bg-[#1ED760] animate-pulse shadow-[0_0_8px_#1ED760]" />
-          <span className="text-white font-medium">Swaara Studio</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#1ED760]/15 text-[#1ED760] font-bold">320K LOSSLESS</span>
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-[#B3B3C2] font-mono text-[11px] font-semibold border border-white/[0.08] transition-colors shadow-sm">
+          <span className="size-2 rounded-full bg-[#00F59B] animate-pulse shadow-[0_0_8px_#00F59B]" />
+          <span className="text-white font-medium">Swaara Lossless</span>
+          <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-[#00F59B]/15 text-[#00F59B] font-extrabold border border-[#00F59B]/30">320K MASTER</span>
         </div>
       </div>
 
@@ -92,21 +92,21 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       <div className="flex-1 max-w-md mx-4 flex items-center justify-center no-drag">
         <button
           onClick={onOpenSearch}
-          className="w-full max-w-sm h-9 px-3 rounded-full bg-[#242424] hover:bg-[#2a2a2a] hover:ring-1 hover:ring-white/20 flex items-center justify-between text-[#B3B3B3] hover:text-white transition-all cursor-pointer group shadow-sm"
+          className="w-full max-w-sm h-8.5 px-3.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 flex items-center justify-between text-[#9A9AA8] hover:text-white transition-all cursor-pointer group shadow-inner"
         >
           <div className="flex items-center gap-2.5 truncate">
-            <Search className="size-4 text-[#B3B3B3] group-hover:text-white transition-colors shrink-0" />
+            <Search className="size-3.5 text-[#9A9AA8] group-hover:text-white transition-colors shrink-0" />
             <span className="text-xs font-medium truncate">
               {currentTrack ? (
                 <span>
                   Playing: <strong className="text-white font-semibold">{currentTrack.title}</strong>
                 </span>
               ) : (
-                'What do you want to play?'
+                'Search catalog, artists, or local files...'
               )}
             </span>
           </div>
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#121212] border border-white/10 font-mono text-[10px] text-[#A7A7A7]">
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-black/40 border border-white/10 font-mono text-[9px] text-[#888899]">
             Ctrl K
           </kbd>
         </button>
@@ -115,18 +115,18 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       {/* Right: Audio Quality Badge, Mini Player, Profile & Window Controls */}
       <div className="flex items-center gap-2 no-drag">
         {/* Pro Account Badge */}
-        <div className="hidden lg:flex items-center gap-1 px-3 py-1 rounded-full bg-white text-black font-bold text-xs hover:scale-105 transition-transform cursor-pointer">
-          <ShieldCheck className="size-3.5" />
-          <span>PRO DESKTOP</span>
+        <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#00F59B] to-[#20CFFF] text-black font-extrabold text-[11px] shadow-[0_0_12px_rgba(0,245,155,0.3)] hover:scale-105 transition-transform cursor-pointer">
+          <ShieldCheck className="size-3.5 stroke-[2.5]" />
+          <span>PRO STUDIO</span>
         </div>
 
         {/* Mini Player Toggle */}
         <button
           onClick={onToggleMiniPlayer}
           title={isMiniPlayer ? 'Exit Mini Player' : 'Picture-in-Picture Mini Player'}
-          className="size-8 rounded-full hover:bg-white/10 hover:text-white flex items-center justify-center text-[#B3B3B3] transition-colors cursor-pointer"
+          className="size-7.5 rounded-full hover:bg-white/10 hover:text-white flex items-center justify-center text-[#9A9AA8] transition-colors cursor-pointer"
         >
-          <Minimize2 className="size-4" />
+          <Minimize2 className="size-3.5" />
         </button>
 
         {/* Electron Window Management Buttons */}

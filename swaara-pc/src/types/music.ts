@@ -13,7 +13,7 @@ export interface Track {
   streamUrl?: string;
   encryptedMediaUrl?: string;
   bitrate?: string;
-  source?: 'swaara' | 'lossless' | 'youtube' | 'local';
+  source?: 'swaara' | 'lossless' | 'studio' | 'local';
   language?: string;
   genre?: string;
   mood?: string;
@@ -22,7 +22,7 @@ export interface Track {
   isLiked?: boolean;
 }
 
-export type AlgorithmMode = 'flow' | 'deep_cuts' | 'high_energy' | 'chill';
+export type AlgorithmMode = 'flow' | 'deep_cuts' | 'high_energy' | 'chill' | 'vocal_acoustic';
 
 export type VisualizerMode = 'liquid' | 'cyberpunk' | 'nebula';
 
@@ -83,7 +83,7 @@ export interface ArtistDetails {
   latestReleases: Track[];
 }
 
-export type ActiveTab = 'discover' | 'search' | 'library' | 'liked' | 'downloads' | 'artist';
+export type ActiveTab = 'discover' | 'search' | 'library' | 'liked' | 'downloads' | 'artist' | 'local' | 'history';
 
 export interface ElectronAPI {
   isElectron: boolean;

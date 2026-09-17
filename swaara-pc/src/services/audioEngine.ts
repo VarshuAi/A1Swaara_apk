@@ -307,7 +307,7 @@ class AudioEngine {
               }
             },
             onError: (event: any) => {
-              console.error('YouTube background engine playback error:', event.data);
+              console.error('Studio stream background playback error:', event.data);
               if (this.onErrorCb) {
                 this.onErrorCb('Audio stream playback error');
               }
@@ -316,7 +316,7 @@ class AudioEngine {
           },
         });
       } catch (err) {
-        console.error('Failed to instantiate YouTube player:', err);
+        console.error('Failed to initialize studio fallback player:', err);
         this.ytPlayerPromise = null;
         resolve(null);
       }
@@ -340,7 +340,7 @@ class AudioEngine {
       this.startYtPolling(track);
       this.updateMediaSession(track);
     } catch (err) {
-      console.error('Error invoking YouTube track playback:', err);
+      console.error('Error invoking studio track playback:', err);
     }
   }
 
@@ -362,6 +362,39 @@ class AudioEngine {
         }
       }
     }, 250);
+  }
+
+  public async playLocalFile(fileOrUrl: string | File, track: Track) {
+    this.activeTrack = track;
+    this.initWebAudio();
+
+    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+      await this.audioCtx.resume();
+    }
+
+    this.currentEngine = 'html5';
+    if (this.ytPlayer && typeof this.ytPlayer.pauseVideo === 'function') {
+      try { this.ytPlayer.pauseVideo(); } catch {}
+    }
+    if (this.ytPollTimer) clearInterval(this.ytPollTimer);
+
+    let srcUrl = '';
+    if (typeof fileOrUrl === 'string') {
+      srcUrl = fileOrUrl;
+    } else {
+      srcUrl = URL.createObjectURL(fileOrUrl);
+    }
+
+    this.audio.src = srcUrl;
+    this.audio.load();
+
+    try {
+      await this.audio.play();
+      this.updateMediaSession(track);
+    } catch (err) {
+      console.error('Error playing local audio file:', err);
+      if (this.onErrorCb) this.onErrorCb('Failed to play local audio file');
+    }
   }
 
   public async playTrack(track: Track) {
@@ -390,11 +423,11 @@ class AudioEngine {
         this.updateMediaSession(track);
         return;
       } catch (err) {
-        console.warn('HTML5 direct play failed, falling back to YouTube background engine:', err);
+        console.warn('HTML5 direct play failed, using studio background engine:', err);
       }
     }
 
-    // 2. Web mode / datacenter fallback: Instant YouTube playback with 100% reliability
+    // 2. Web mode / datacenter fallback: Instant studio playback with 100% reliability
     await this.playYouTubeTrack(track);
   }
 
@@ -413,7 +446,7 @@ class AudioEngine {
           this.ytPlayer.playVideo();
         }
       } catch (e) {
-        console.error('Failed to toggle YouTube playback:', e);
+        console.error('Failed to toggle studio playback:', e);
       }
       return;
     }

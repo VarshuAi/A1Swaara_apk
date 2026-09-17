@@ -23,7 +23,7 @@ import {
   Headphones,
   Gauge,
 } from 'lucide-react';
-import { Track } from '../types/music';
+import { Track, AlgorithmMode } from '../types/music';
 
 interface PlayerBarProps {
   currentTrack: Track | null;
@@ -62,6 +62,8 @@ interface PlayerBarProps {
   onChangeSpeed?: (speed: number) => void;
   isAutoDJ?: boolean;
   onToggleAutoDJ?: () => void;
+  algorithmMode?: AlgorithmMode;
+  onChangeAlgorithmMode?: (mode: AlgorithmMode) => void;
 }
 
 function formatTime(secs: number): string {
@@ -108,6 +110,8 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
   onChangeSpeed,
   isAutoDJ = true,
   onToggleAutoDJ,
+  algorithmMode = 'flow',
+  onChangeAlgorithmMode,
 }) => {
   const [isScrubHovered, setIsScrubHovered] = useState(false);
   const [isVolumeHovered, setIsVolumeHovered] = useState(false);
@@ -125,16 +129,24 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
     }
   };
 
+  const cycleAlgorithmMode = () => {
+    if (!onChangeAlgorithmMode) return;
+    const modes: AlgorithmMode[] = ['flow', 'high_energy', 'chill', 'vocal_acoustic', 'deep_cuts'];
+    const currIdx = modes.indexOf(algorithmMode);
+    const nextMode = modes[(currIdx + 1) % modes.length];
+    onChangeAlgorithmMode(nextMode);
+  };
+
   return (
-    <footer className="h-20 w-full bg-[#000000] border-t border-[#181818] px-4 flex items-center justify-between select-none z-40 relative font-sans">
-      {/* 1. Left Column: Track Info & Artwork (Spotify Spec 56x56) */}
+    <footer className="h-21 w-full bg-[#080811]/95 backdrop-blur-3xl border-t border-white/[0.08] px-5 flex items-center justify-between select-none z-40 relative font-sans shadow-[0_-10px_35px_rgba(0,0,0,0.8)]">
+      {/* 1. Left Column: Track Info & Artwork */}
       <div className="flex items-center gap-3.5 w-[30%] min-w-[200px] max-w-[340px]">
         {currentTrack ? (
           <>
             {/* Artwork with Click-to-Expand Stage */}
             <div
               onClick={onExpandNowPlaying}
-              className="relative size-14 rounded overflow-hidden shrink-0 shadow-md group cursor-pointer bg-[#282828]"
+              className="relative size-14 rounded-xl overflow-hidden shrink-0 shadow-lg shadow-black/60 group cursor-pointer bg-[#141420] border border-white/10"
               title="Expand Now Playing Stage"
             >
               <img
@@ -149,15 +161,26 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
 
             {/* Track Title & Artist */}
             <div className="truncate flex-1">
-              <p
-                onClick={onExpandNowPlaying}
-                className="font-medium text-sm text-white hover:underline cursor-pointer truncate"
-              >
-                {currentTrack.title}
-              </p>
+              <div className="flex items-center gap-1.5 truncate">
+                <p
+                  onClick={onExpandNowPlaying}
+                  className="font-bold text-sm text-white hover:text-[#00F59B] transition-colors cursor-pointer truncate"
+                >
+                  {currentTrack.title}
+                </p>
+                {/* Mini audio reactive wave indicator */}
+                {isPlaying && (
+                  <div className="flex items-end gap-0.5 h-3 ml-1 shrink-0" title="Lossless 320k Audio Stream">
+                    <span className="w-0.5 bg-[#00F59B] rounded-full animate-eq-1 shadow-[0_0_6px_#00F59B]" />
+                    <span className="w-0.5 bg-[#1ED760] rounded-full animate-eq-2" />
+                    <span className="w-0.5 bg-[#20CFFF] rounded-full animate-eq-3 shadow-[0_0_6px_#20CFFF]" />
+                    <span className="w-0.5 bg-[#8B35FF] rounded-full animate-eq-4" />
+                  </div>
+                )}
+              </div>
               <p
                 onClick={() => onOpenArtist && currentTrack.artist && onOpenArtist(currentTrack.artist)}
-                className="text-xs text-[#B3B3B3] hover:underline hover:text-white cursor-pointer truncate mt-0.5"
+                className="text-xs text-[#9A9AA8] hover:underline hover:text-white cursor-pointer truncate mt-0.5"
               >
                 {currentTrack.artist}
               </p>
@@ -166,99 +189,115 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
             {/* Favorite Heart */}
             <button
               onClick={onToggleLike}
-              className={`p-1.5 transition-transform hover:scale-110 active:scale-90 cursor-pointer ${
-                isLiked ? 'text-[#1ED760]' : 'text-[#B3B3B3] hover:text-white'
+              className={`p-1.5 transition-all hover:scale-110 active:scale-90 cursor-pointer ${
+                isLiked ? 'text-[#00F59B]' : 'text-[#9A9AA8] hover:text-white'
               }`}
               title={isLiked ? 'Remove from Your Library' : 'Save to Your Library'}
             >
-              <Heart className={`size-4.5 ${isLiked ? 'fill-[#1ED760]' : ''}`} />
+              <Heart className={`size-4.5 ${isLiked ? 'fill-[#00F59B] drop-shadow-[0_0_8px_rgba(0,245,155,0.5)]' : ''}`} />
             </button>
 
             {/* 1-Click 320k Download */}
             <button
               onClick={() => onDownloadTrack(currentTrack)}
               disabled={isDownloading}
-              className="p-1.5 text-[#B3B3B3] hover:text-white transition-transform hover:scale-110 active:scale-90 cursor-pointer"
+              className="p-1.5 text-[#9A9AA8] hover:text-[#00F59B] transition-all hover:scale-110 active:scale-90 cursor-pointer"
               title="Download 320 kbps file"
             >
               {isDownloading ? (
-                <Loader2 className="size-4.5 animate-spin text-[#1ED760]" />
+                <Loader2 className="size-4.5 animate-spin text-[#00F59B]" />
               ) : (
                 <Download className="size-4.5" />
               )}
             </button>
           </>
         ) : (
-          <div className="flex items-center gap-3 text-xs text-[#B3B3B3]">
-            <div className="size-14 rounded bg-[#181818] flex items-center justify-center">
-              <Disc3 className="size-6 text-[#4D4D4D]" />
+          <div className="flex items-center gap-3 text-xs text-[#9A9AA8]">
+            <div className="size-14 rounded-xl bg-[#12121E] border border-white/5 flex items-center justify-center">
+              <Disc3 className="size-6 text-[#555566]" />
             </div>
-            <span>No track selected</span>
+            <span>No track loaded</span>
           </div>
         )}
       </div>
 
       {/* 2. Center Column: Master Transport Controls & Progress Scrub Bar */}
-      <div className="flex flex-col items-center justify-center w-[40%] max-w-[720px] gap-1.5">
+      <div className="flex flex-col items-center justify-center w-[40%] max-w-[720px] gap-2">
         {/* Playback Action Buttons */}
         <div className="flex items-center gap-4 sm:gap-5">
-          {/* Smart Auto-DJ Flow */}
+          {/* Smart Auto-DJ Flow & Persona Indicator */}
           {onToggleAutoDJ && (
-            <button
-              onClick={onToggleAutoDJ}
-              className={`transition-colors cursor-pointer relative ${
-                isAutoDJ ? 'text-[#1ED760]' : 'text-[#B3B3B3] hover:text-white'
-              }`}
-              title={isAutoDJ ? 'Smart AI DJ: Continuous Flow ON' : 'Smart AI DJ: OFF'}
-            >
-              <Radio className="size-4" />
-              {isAutoDJ && (
-                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 size-1 rounded-full bg-[#1ED760] shadow-[0_0_6px_#1ED760]" />
+            <div className="flex items-center gap-1">
+              <button
+                onClick={onToggleAutoDJ}
+                className={`transition-colors cursor-pointer relative p-1 ${
+                  isAutoDJ ? 'text-[#00F59B]' : 'text-[#777788] hover:text-white'
+                }`}
+                title={isAutoDJ ? 'Smart AI DJ: Continuous Flow ON' : 'Smart AI DJ: OFF'}
+              >
+                <Radio className="size-4" />
+                {isAutoDJ && (
+                  <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 size-1 rounded-full bg-[#00F59B] shadow-[0_0_6px_#00F59B]" />
+                )}
+              </button>
+
+              {isAutoDJ && onChangeAlgorithmMode && (
+                <button
+                  onClick={cycleAlgorithmMode}
+                  className="hidden md:inline-flex items-center text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-white/[0.06] hover:bg-white/[0.1] text-zinc-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                  title="Click to cycle AI DJ vibe"
+                >
+                  {algorithmMode === 'flow' && 'Flow'}
+                  {algorithmMode === 'high_energy' && '🔥 Hype'}
+                  {algorithmMode === 'chill' && '🌙 Chill'}
+                  {algorithmMode === 'vocal_acoustic' && '✨ Vocal'}
+                  {algorithmMode === 'deep_cuts' && '🌌 Deep'}
+                </button>
               )}
-            </button>
+            </div>
           )}
 
           {/* Shuffle */}
           <button
             onClick={onToggleShuffle}
-            className={`transition-colors cursor-pointer relative ${
-              isShuffle ? 'text-[#1ED760]' : 'text-[#B3B3B3] hover:text-white'
+            className={`transition-colors cursor-pointer relative p-1 ${
+              isShuffle ? 'text-[#00F59B]' : 'text-[#9A9AA8] hover:text-white'
             }`}
             title={isShuffle ? 'Disable shuffle' : 'Enable shuffle'}
           >
             <Shuffle className="size-4" />
-            {isShuffle && <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 size-1 rounded-full bg-[#1ED760]" />}
+            {isShuffle && <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 size-1 rounded-full bg-[#00F59B]" />}
           </button>
 
           {/* Previous Track */}
           <button
             onClick={onPrev}
-            className="text-[#B3B3B3] hover:text-white transition-colors cursor-pointer"
+            className="text-[#B3B3C2] hover:text-white transition-colors cursor-pointer p-1"
             title="Previous (Shift+P)"
           >
             <SkipBack className="size-5 fill-current" />
           </button>
 
-          {/* Hero Play / Pause Circle (Spotify Iconic White Button) */}
+          {/* Hero Play / Pause Circle (Neon Cyber Accent) */}
           <button
             onClick={onTogglePlay}
             disabled={!currentTrack}
-            className="size-8 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-150 shadow-md cursor-pointer disabled:opacity-50"
+            className="size-9 rounded-full bg-gradient-to-tr from-[#00F59B] via-[#1ED760] to-[#20CFFF] text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-150 shadow-[0_0_20px_rgba(0,245,155,0.4)] cursor-pointer disabled:opacity-50 font-bold"
             title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
           >
             {isLoading ? (
               <Loader2 className="size-4.5 animate-spin text-black" />
             ) : isPlaying ? (
-              <Pause className="size-4.5 fill-black" />
+              <Pause className="size-4.5 fill-black stroke-black" />
             ) : (
-              <Play className="size-4.5 fill-black ml-0.5" />
+              <Play className="size-4.5 fill-black stroke-black ml-0.5" />
             )}
           </button>
 
           {/* Next Track */}
           <button
             onClick={onNext}
-            className="text-[#B3B3B3] hover:text-white transition-colors cursor-pointer"
+            className="text-[#B3B3C2] hover:text-white transition-colors cursor-pointer p-1"
             title="Next (Shift+N)"
           >
             <SkipForward className="size-5 fill-current" />
@@ -267,37 +306,39 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
           {/* Repeat */}
           <button
             onClick={onToggleRepeat}
-            className={`transition-colors cursor-pointer relative ${
-              isRepeat ? 'text-[#1ED760]' : 'text-[#B3B3B3] hover:text-white'
+            className={`transition-colors cursor-pointer relative p-1 ${
+              isRepeat ? 'text-[#00F59B]' : 'text-[#9A9AA8] hover:text-white'
             }`}
             title={isRepeat ? 'Disable repeat' : 'Enable repeat'}
           >
             <Repeat className="size-4" />
-            {isRepeat && <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 size-1 rounded-full bg-[#1ED760]" />}
+            {isRepeat && <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 size-1 rounded-full bg-[#00F59B]" />}
           </button>
         </div>
 
         {/* Scrubber Timeline Bar */}
-        <div className="w-full flex items-center gap-2 text-xs font-mono text-[#A7A7A7]">
-          <span className="w-10 text-right text-[11px]">
+        <div className="w-full flex items-center gap-2.5 text-xs font-mono text-[#8E8E9F]">
+          <span className="w-10 text-right text-[11px] font-semibold">
             {formatTime(currentTime)}
           </span>
 
           <div
-            className="relative flex-1 h-1 bg-[#4D4D4D] rounded-full group cursor-pointer"
+            className="relative flex-1 h-1.5 bg-white/[0.08] rounded-full group cursor-pointer overflow-visible"
             onMouseEnter={() => setIsScrubHovered(true)}
             onMouseLeave={() => setIsScrubHovered(false)}
           >
             {/* Buffer bar */}
             <div
-              className="absolute top-0 left-0 h-full bg-[#5E5E5E] rounded-full pointer-events-none transition-all duration-200"
+              className="absolute top-0 left-0 h-full bg-white/[0.15] rounded-full pointer-events-none transition-all duration-200"
               style={{ width: `${bufferedPercent}%` }}
             />
 
-            {/* Active Playback Progress (White, turns Spotify Green on hover) */}
+            {/* Active Playback Progress (Illuminated Cyber Gradient) */}
             <div
-              className={`absolute top-0 left-0 h-full rounded-full pointer-events-none transition-colors ${
-                isScrubHovered ? 'bg-[#1ED760]' : 'bg-white'
+              className={`absolute top-0 left-0 h-full rounded-full pointer-events-none transition-all ${
+                isScrubHovered
+                  ? 'bg-gradient-to-r from-[#00F59B] to-[#20CFFF] shadow-[0_0_12px_rgba(0,245,155,0.7)]'
+                  : 'bg-gradient-to-r from-[#00F59B] via-[#1ED760] to-[#20CFFF]'
               }`}
               style={{ width: `${progressPercent}%` }}
             />
@@ -305,8 +346,8 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
             {/* Hover thumb scrubber dot */}
             {isScrubHovered && (
               <div
-                className="absolute top-1/2 -translate-y-1/2 size-3 rounded-full bg-white shadow-md pointer-events-none"
-                style={{ left: `calc(${progressPercent}% - 6px)` }}
+                className="absolute top-1/2 -translate-y-1/2 size-3.5 rounded-full bg-white shadow-[0_0_10px_#00F59B] border-2 border-[#00F59B] pointer-events-none"
+                style={{ left: `calc(${progressPercent}% - 7px)` }}
               />
             )}
 
@@ -320,7 +361,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
             />
           </div>
 
-          <span className="w-10 text-left text-[11px]">
+          <span className="w-10 text-left text-[11px] font-semibold">
             {formatTime(duration)}
           </span>
         </div>
@@ -423,10 +464,12 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
             )}
           </button>
 
-          <div className="relative flex-1 h-1 bg-[#4D4D4D] rounded-full cursor-pointer">
+          <div className="relative flex-1 h-1.5 bg-white/[0.08] rounded-full cursor-pointer overflow-hidden">
             <div
-              className={`h-full rounded-full transition-colors ${
-                isVolumeHovered ? 'bg-[#1ED760]' : 'bg-white'
+              className={`h-full rounded-full transition-all ${
+                isVolumeHovered
+                  ? 'bg-gradient-to-r from-[#00F59B] to-[#20CFFF] shadow-[0_0_8px_rgba(0,245,155,0.6)]'
+                  : 'bg-white'
               }`}
               style={{ width: `${volume * 100}%` }}
             />
