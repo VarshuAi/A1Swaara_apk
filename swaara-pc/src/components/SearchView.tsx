@@ -12,8 +12,8 @@ import {
   Plus,
   TrendingUp,
 } from 'lucide-react';
-import { Track } from '../types/music';
-import { searchMusic } from '../services/api';
+import { Track, ArtistSearchResult } from '../types/music';
+import { searchMusic, searchArtists } from '../services/api';
 
 interface SearchViewProps {
   onPlayTrack: (track: Track) => void;
@@ -56,24 +56,32 @@ export const SearchView: React.FC<SearchViewProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Track[]>([]);
+  const [matchingArtists, setMatchingArtists] = useState<ArtistSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
+      setMatchingArtists([]);
       setIsLoading(false);
       return;
     }
 
     const timer = setTimeout(() => {
       setIsLoading(true);
-      searchMusic(query)
-        .then((tracks) => {
-          setResults(tracks);
-          setIsLoading(false);
-        })
-        .catch(() => setIsLoading(false));
+      Promise.allSettled([
+        searchMusic(query),
+        searchArtists(query),
+      ]).then(([songsRes, artistsRes]) => {
+        if (songsRes.status === 'fulfilled') {
+          setResults(songsRes.value);
+        }
+        if (artistsRes.status === 'fulfilled') {
+          setMatchingArtists(artistsRes.value);
+        }
+        setIsLoading(false);
+      }).catch(() => setIsLoading(false));
     }, 300);
 
     return () => clearTimeout(timer);
@@ -114,8 +122,40 @@ export const SearchView: React.FC<SearchViewProps> = ({
       </div>
 
       {/* Results View */}
-      {results.length > 0 ? (
+      {results.length > 0 || matchingArtists.length > 0 ? (
         <div className="space-y-8">
+          {/* Matching Artists Shelf with Real Circular Portraits */}
+          {matchingArtists.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-[#8E8E93]">
+                Artists
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {matchingArtists.slice(0, 6).map((art) => (
+                  <div
+                    key={art.id}
+                    onClick={() => onOpenArtist && onOpenArtist(art.browseId || art.name)}
+                    className="group cursor-pointer flex flex-col items-center text-center p-3.5 rounded-xl bg-[#111113] hover:bg-[#141416] border border-white/[0.06] hover:border-white/10 transition-colors"
+                  >
+                    <div className="relative size-20 sm:size-24 rounded-full overflow-hidden mb-2.5 bg-[#18181B] border border-white/[0.08] group-hover:border-[#10B981]/50 transition-colors shadow-md">
+                      <img
+                        src={art.avatarUrl}
+                        alt={art.name}
+                        className="size-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      />
+                    </div>
+                    <h4 className="font-semibold text-xs text-white truncate w-full group-hover:text-[#10B981] transition-colors">
+                      {art.name}
+                    </h4>
+                    <p className="text-[11px] text-[#8E8E93] truncate w-full mt-0.5">
+                      {art.subscribers || 'Artist'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Top Result + Top 4 Tracks */}
           {topResult && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

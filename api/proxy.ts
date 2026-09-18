@@ -61,13 +61,13 @@ export default async function handler(req: Request) {
       );
     }
 
-    // Prepare headers for upstream request
+    const isYtMusic = targetUrl.includes('music.youtube.com');
     const forwardHeaders: Record<string, string> = {
       'User-Agent': req.headers.get('user-agent') || DEFAULT_USER_AGENT,
       'Accept': req.headers.get('accept') || '*/*',
       'Accept-Language': 'en-US,en;q=0.9',
-      'Origin': 'https://www.youtube.com',
-      'Referer': 'https://www.youtube.com/',
+      'Origin': isYtMusic ? 'https://music.youtube.com' : 'https://www.youtube.com',
+      'Referer': isYtMusic ? 'https://music.youtube.com/' : 'https://www.youtube.com/',
       'Cookie': CONSENT_COOKIE,
     };
 

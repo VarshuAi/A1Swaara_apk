@@ -1,4 +1,4 @@
-import { Track, SyncedLyricLine, SongInsights, ListenerComment, ArtistDetails } from '../types/music';
+import { Track, SyncedLyricLine, SongInsights, ListenerComment, ArtistDetails, ArtistSearchResult, ArtistReleaseItem } from '../types/music';
 import { YTMusicExtractor } from './newpipe/extractors/ytmusic';
 import { SearchExtractor } from './newpipe/extractors/search';
 import { StreamExtractor } from './newpipe/extractors/stream';
@@ -264,82 +264,97 @@ export async function fetchArtistProfile(channelIdOrHandle: string) {
   }
 }
 
-// Fetch Comprehensive Artist Profile, Top Songs & Discography
-export async function fetchArtistFullDetails(artistNameOrChannelId: string): Promise<ArtistDetails> {
-  const isChannelId = artistNameOrChannelId.startsWith('UC') && artistNameOrChannelId.length >= 24;
-  let channelInfo: any = null;
-  let artistName = artistNameOrChannelId;
+// Search artists using YouTube Music ViMusic InnerTube filter
+export async function searchArtists(query: string): Promise<ArtistSearchResult[]> {
+  return YTMusicExtractor.searchArtists(query);
+}
 
-  // 1. Try resolving channel
+// Get real artist avatar photo for any artist name
+export async function getRealArtistAvatar(artistName: string): Promise<string | undefined> {
   try {
-    if (isChannelId) {
-      channelInfo = await ChannelExtractor.extract(artistNameOrChannelId);
-      if (channelInfo?.name) {
-        artistName = channelInfo.name;
+    const results = await YTMusicExtractor.searchArtists(artistName);
+    return results[0]?.avatarUrl;
+  } catch {
+    return undefined;
+  }
+}
+
+// Fetch Comprehensive Artist Profile, Real Images, Top Songs & Discography
+export async function fetchArtistFullDetails(artistNameOrChannelId: string): Promise<ArtistDetails> {
+  const isBrowseId =
+    (artistNameOrChannelId.startsWith('UC') || artistNameOrChannelId.startsWith('MPRE')) &&
+    artistNameOrChannelId.length >= 20;
+
+  let browseId = isBrowseId ? artistNameOrChannelId : '';
+  let artistName = isBrowseId ? '' : artistNameOrChannelId;
+  let resolvedAvatarUrl: string | undefined;
+
+  // 1. If not already a browseId, search YouTube Music for the verified artist
+  if (!browseId) {
+    try {
+      const searchArtistsResults = await YTMusicExtractor.searchArtists(artistNameOrChannelId);
+      if (searchArtistsResults.length > 0) {
+        const topMatch = searchArtistsResults[0];
+        browseId = topMatch.browseId;
+        artistName = topMatch.name;
+        resolvedAvatarUrl = topMatch.avatarUrl;
       }
-    } else {
-      // Search for the artist channel
-      const searchRes = await SearchExtractor.search(artistNameOrChannelId, { type: 'channel' });
-      const topChannel = searchRes.items.find((item) => item.type === 'channel');
-      if (topChannel && topChannel.id) {
-        channelInfo = await ChannelExtractor.extract(topChannel.id);
-        if (channelInfo?.name) {
-          artistName = channelInfo.name;
+    } catch (err) {
+      console.warn('YTM artist search lookup failed:', err);
+    }
+  }
+
+  // 2. Fetch full details using the ViMusic browse endpoint
+  let ytmDetails: ArtistDetails | null = null;
+  if (browseId) {
+    try {
+      ytmDetails = await YTMusicExtractor.getArtistDetails(browseId);
+      if (ytmDetails?.name) {
+        artistName = ytmDetails.name;
+      }
+    } catch (err) {
+      console.warn('YTM getArtistDetails failed, falling back:', err);
+    }
+  }
+
+  // 3. Fallback or additional top songs if needed
+  let topTracks: Track[] = ytmDetails?.topTracks || [];
+  if (topTracks.length < 10) {
+    try {
+      const extraTracks = await searchMusic(`${artistName || artistNameOrChannelId} official songs`);
+      const existingIds = new Set(topTracks.map((t) => t.id));
+      for (const t of extraTracks) {
+        if (!existingIds.has(t.id)) {
+          existingIds.add(t.id);
+          topTracks.push({ ...t, artist: artistName || t.artist });
         }
       }
+    } catch (err) {
+      console.warn('Failed to fetch additional tracks:', err);
     }
-  } catch (err) {
-    console.warn('Channel resolution failed, falling back to name search:', err);
   }
 
-  // 2. Fetch Top Songs
-  let topTracks: Track[] = [];
-  try {
-    topTracks = await searchMusic(`${artistName} songs official audio`);
-    if (topTracks.length === 0) {
-      topTracks = await searchMusic(artistName);
-    }
-  } catch (err) {
-    console.warn('Failed to fetch top tracks for artist:', err);
-  }
-
-  // 3. Map Recent Releases / Discography
-  let latestReleases: Track[] = [];
-  if (channelInfo?.recentVideos && channelInfo.recentVideos.length > 0) {
-    latestReleases = channelInfo.recentVideos.map((v: any) => {
-      const { cleanTitle } = cleanTrackTitle(v.title);
-      const bestThumb = v.thumbnails?.[v.thumbnails.length - 1]?.url ||
-        `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;
-      return {
-        id: v.id,
-        title: cleanTitle,
-        artist: cleanArtistName(channelInfo.name) || artistName,
-        duration: parseDurationToSeconds(v.durationText || '3:30'),
-        artwork: bestThumb,
-        source: 'swaara' as const,
-        bitrate: '320 kbps',
-      };
-    });
-  } else {
-    // Fallback: search for recent releases
-    try {
-      latestReleases = await searchMusic(`${artistName} latest release official audio`);
-    } catch {
-      latestReleases = topTracks.slice(5);
-    }
-  }
+  const finalAvatar =
+    resolvedAvatarUrl ||
+    ytmDetails?.avatarUrl ||
+    (ytmDetails?.bannerUrl ? YTMusicExtractor.getHighResImage(ytmDetails.bannerUrl, 600, 600) : undefined) ||
+    topTracks[0]?.artwork;
 
   return {
-    id: channelInfo?.id || (isChannelId ? artistNameOrChannelId : `artist-${encodeURIComponent(artistName)}`),
-    name: artistName,
-    handle: channelInfo?.handle,
-    avatarUrl: channelInfo?.avatarUrl || topTracks[0]?.artwork,
-    bannerUrl: channelInfo?.bannerUrl,
-    subscriberCountText: channelInfo?.subscriberCountText || 'Popular Artist',
-    verified: channelInfo?.verified ?? true,
-    description: channelInfo?.description,
-    topTracks: topTracks.slice(0, 15),
-    latestReleases: latestReleases.slice(0, 10),
+    id: browseId || `artist-${encodeURIComponent(artistName || artistNameOrChannelId)}`,
+    name: artistName || artistNameOrChannelId,
+    avatarUrl: finalAvatar,
+    bannerUrl: ytmDetails?.bannerUrl,
+    subscriberCountText: ytmDetails?.subscriberCountText || 'Artist',
+    verified: true,
+    description: ytmDetails?.description,
+    topTracks: topTracks.slice(0, 20),
+    latestReleases: (ytmDetails?.singles && ytmDetails.singles.length > 0
+      ? ytmDetails.singles
+      : ytmDetails?.albums || []) as any,
+    albums: ytmDetails?.albums || [],
+    singles: ytmDetails?.singles || [],
+    similarArtists: ytmDetails?.similarArtists || [],
   };
 }
 

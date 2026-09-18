@@ -35,39 +35,51 @@ interface DiscoverViewProps {
 const POPULAR_ARTISTS = [
   {
     name: 'Arijit Singh',
-    genre: 'Artist',
-    artwork: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&h=300&fit=crop',
+    browseId: 'UCDxKh1gFWeYsqePvgVzmPoQ',
+    artwork: 'https://lh3.googleusercontent.com/W_yOqnKSDYyeVOY_AsXhuAtb6rW3vCL3GtJ9DA1GxWOrJfyeSOqzvTv_TkFHijdkVPXWutASBlRFPg=w600-h600-p-l90-rj',
     query: 'Arijit Singh top hits',
   },
   {
     name: 'Anirudh',
-    genre: 'Artist',
-    artwork: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop',
+    browseId: 'UCbRSywya_rl8YS15Lo9ttsA',
+    artwork: 'https://lh3.googleusercontent.com/wBG4jypwBcEGHd-qSbM2_4B46WPEhlOCjusCOEkxdnsoIC4WLS9LmFARZsE854pB-vAEYlsp4x2yiHE=w600-h600-p-l90-rj',
     query: 'Anirudh Ravichander hits',
   },
   {
     name: 'Sid Sriram',
-    genre: 'Artist',
-    artwork: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&h=300&fit=crop',
+    browseId: 'UC7_KgmSrwM247k2lnh5GhHw',
+    artwork: 'https://yt3.googleusercontent.com/Ip35qauI_vMztXkJ3Wd6etvLwiyRrHIGvDyKK3714vyWMBx1ogHxPxkA8ohPnOLyy68wzEVBblPmsHHU=w600-h600-p-l90-rj',
     query: 'Sid Sriram songs',
   },
   {
     name: 'Shreya Ghoshal',
-    genre: 'Artist',
-    artwork: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop',
+    browseId: 'UCrC-7fsdTCYeaRBpwA6j-Eg',
+    artwork: 'https://yt3.ggpht.com/PgINZNe0qVxgMSXKG5vF82bNN4WCC12zgWsz9I7OLs4CLF9Cn0Vxq7Xc1ToupnzXrCv0nKfe3VM=w600-c-h600-k-c0x00ffffff-no-l90-rj',
     query: 'Shreya Ghoshal melodies',
   },
   {
     name: 'The Weeknd',
-    genre: 'Artist',
-    artwork: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&h=300&fit=crop',
+    browseId: 'UClYV6hHlupm_S_ObS1W-DYw',
+    artwork: 'https://lh3.googleusercontent.com/U-SAmNOu4TynE818gLCfKsuHZ0U5YNEtO9mrjSI9WCCKERs98LzrCal5kajBBTQNwdcisoB2Bn-pHp4=w600-h600-p-l90-rj',
     query: 'The Weeknd hits',
   },
   {
+    name: 'A.R. Rahman',
+    browseId: 'UCtJe0RYzgPddQXKtWduxz_w',
+    artwork: 'https://yt3.googleusercontent.com/vHMOuDn8gr3SW9Pm8yFgmtYzM5kj4ayng5HKRjW0OyjG9mPK923XMVtTZTt4NUG_1aemWNLSQ27zjtA=w600-h600-p-l90-rj',
+    query: 'A R Rahman hits',
+  },
+  {
     name: 'Sanjith Hegde',
-    genre: 'Artist',
-    artwork: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=300&h=300&fit=crop',
+    browseId: 'UCGCzMLhz0ucUUACQAHw-rmg',
+    artwork: 'https://yt3.googleusercontent.com/oom6ZgCVlwOqUZauEjdzerUe00GdRfypxk9pUtkp2U7FiG1tD_uIbzAY90QCjXI-2LpxBNEx6g=w600-h600-p-l90-rj',
     query: 'Sanjith Hegde songs',
+  },
+  {
+    name: 'Karan Aujla',
+    browseId: 'UCSmK5WX5U4gdtebWjoL81og',
+    artwork: 'https://lh3.googleusercontent.com/k7sgqqcV5VScaMZtTmS8W_tfouLVBpgyJII0epYE2Vjw1-zzhGgUCV51aHxZn6cmZKKJgUfNlIVpZg=w600-h600-p-l90-rj',
+    query: 'Karan Aujla hits',
   },
 ];
 
@@ -274,13 +286,13 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
           Featured Artists
         </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-4 sm:gap-5">
           {POPULAR_ARTISTS.map((artist) => (
             <div
               key={artist.name}
               onClick={() => {
                 if (onOpenArtist) {
-                  onOpenArtist(artist.name);
+                  onOpenArtist(artist.browseId || artist.name);
                 } else {
                   setSelectedMatrix({
                     id: 'custom',
@@ -292,15 +304,15 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
               }}
               className="cursor-pointer group flex flex-col items-center text-center"
             >
-              <div className="relative size-24 rounded-full overflow-hidden mb-2 bg-[#18181B]">
+              <div className="relative size-20 sm:size-24 rounded-full overflow-hidden mb-2 bg-[#18181B] border border-white/[0.08] group-hover:border-[#10B981]/60 transition-all duration-200 shadow-md">
                 <img
                   src={artist.artwork}
                   alt={artist.name}
-                  className="size-full object-cover"
+                  className="size-full object-cover group-hover:scale-105 transition-transform duration-200"
                 />
               </div>
 
-              <h4 className="font-medium text-xs text-[#F4F4F5] truncate w-full group-hover:text-white">
+              <h4 className="font-medium text-xs text-[#F4F4F5] truncate w-full group-hover:text-[#10B981] transition-colors">
                 {artist.name}
               </h4>
               <p className="text-[11px] text-[#71717A] mt-0.5">

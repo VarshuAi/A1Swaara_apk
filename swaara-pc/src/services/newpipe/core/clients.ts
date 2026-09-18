@@ -83,6 +83,7 @@ export class InnerTubeClient {
     RESOLVE_URL: 'https://www.youtube.com/youtubei/v1/navigation/resolve_url',
     YTM_SEARCH: 'https://music.youtube.com/youtubei/v1/search',
     YTM_NEXT: 'https://music.youtube.com/youtubei/v1/next',
+    YTM_BROWSE: 'https://music.youtube.com/youtubei/v1/browse',
   };
 
   /**
@@ -250,6 +251,27 @@ export class InnerTubeClient {
       context: { client: clientContext },
       query,
       params: 'Eg-KAQwIARAAGAAgACgAMABqChAMEAMQBBAJEAo%3D', // Strict Songs filter in YouTube Music
+    };
+  }
+
+  /**
+   * Prepares YouTube Music artist search body (ViMusic InnerTube artists filter)
+   */
+  public static prepareYtMusicArtistSearchBody(query: string, clientContext: InnerTubeClientContext) {
+    return {
+      context: { client: clientContext },
+      query,
+      params: 'EgWKAQIgAWoMEAMQBBAJEA4QChAF', // Strict Artists filter in YouTube Music
+    };
+  }
+
+  /**
+   * Prepares YouTube Music browse body for artist profiles, albums, or playlists
+   */
+  public static prepareYtMusicBrowseBody(browseId: string, clientContext: InnerTubeClientContext) {
+    return {
+      context: { client: clientContext },
+      browseId,
     };
   }
 

@@ -22,6 +22,8 @@ import {
   Radio,
   Headphones,
   Gauge,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 import { Track, AlgorithmMode } from '../types/music';
 
@@ -64,6 +66,7 @@ interface PlayerBarProps {
   onToggleAutoDJ?: () => void;
   algorithmMode?: AlgorithmMode;
   onChangeAlgorithmMode?: (mode: AlgorithmMode) => void;
+  isNowPlayingOpen?: boolean;
 }
 
 function formatTime(secs: number): string {
@@ -112,6 +115,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
   onToggleAutoDJ,
   algorithmMode = 'flow',
   onChangeAlgorithmMode,
+  isNowPlayingOpen = false,
 }) => {
   const [isScrubHovered, setIsScrubHovered] = useState(false);
   const [isVolumeHovered, setIsVolumeHovered] = useState(false);
@@ -138,7 +142,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
   };
 
   return (
-    <footer className="h-18 w-full bg-[#09090B] border-t border-white/[0.06] px-5 flex items-center justify-between select-none z-40 relative font-sans">
+    <footer className="h-18 w-full bg-[#070B0E] border-t border-white/[0.06] px-5 flex items-center justify-between select-none z-40 relative font-sans">
       {/* 1. Left: Track Info & Artwork */}
       <div className="flex items-center gap-3 w-[28%] min-w-[180px] max-w-[300px]">
         {currentTrack ? (
@@ -173,11 +177,11 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
             <button
               onClick={onToggleLike}
               className={`p-1.5 transition-colors cursor-pointer ${
-                isLiked ? 'text-emerald-400 fill-emerald-400' : 'text-[#71717A] hover:text-[#F4F4F5]'
+                isLiked ? 'text-[#2DD4BF] fill-[#2DD4BF]' : 'text-[#71717A] hover:text-[#F4F4F5]'
               }`}
               title={isLiked ? 'Saved' : 'Save to Library'}
             >
-              <Heart className={`size-3.5 ${isLiked ? 'fill-emerald-400' : ''}`} />
+              <Heart className={`size-3.5 ${isLiked ? 'fill-[#2DD4BF]' : ''}`} />
             </button>
           </>
         ) : (
@@ -197,7 +201,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
           <button
             onClick={onToggleShuffle}
             className={`transition-colors cursor-pointer p-1 ${
-              isShuffle ? 'text-emerald-400' : 'text-[#71717A] hover:text-[#F4F4F5]'
+              isShuffle ? 'text-[#2DD4BF]' : 'text-[#71717A] hover:text-[#F4F4F5]'
             }`}
             title="Shuffle"
           >
@@ -238,7 +242,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
           <button
             onClick={onToggleRepeat}
             className={`transition-colors cursor-pointer p-1 ${
-              isRepeat ? 'text-emerald-400' : 'text-[#71717A] hover:text-[#F4F4F5]'
+              isRepeat ? 'text-[#2DD4BF]' : 'text-[#71717A] hover:text-[#F4F4F5]'
             }`}
             title="Repeat"
           >
@@ -253,7 +257,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
           </span>
 
           <div
-            className="relative flex-1 h-1 hover:h-1.5 bg-white/[0.08] rounded-full group cursor-pointer transition-all overflow-hidden"
+            className="relative flex-1 h-1 hover:h-1.5 bg-white/[0.08] rounded-full group cursor-pointer transition-all"
             onMouseEnter={() => setIsScrubHovered(true)}
             onMouseLeave={() => setIsScrubHovered(false)}
           >
@@ -262,10 +266,12 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
               style={{ width: `${bufferedPercent}%` }}
             />
             <div
-              className={`absolute top-0 left-0 h-full rounded-full pointer-events-none ${
-                isScrubHovered ? 'bg-emerald-400' : 'bg-[#E4E4E7]'
-              }`}
+              className="absolute top-0 left-0 h-full rounded-full pointer-events-none bg-[#2DD4BF]"
               style={{ width: `${progressPercent}%` }}
+            />
+            <div
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-2.5 rounded-full bg-white shadow pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ left: `${progressPercent}%` }}
             />
             <input
               type="range"
@@ -289,7 +295,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
         <button
           onClick={onOpenLyrics}
           className={`p-1.5 transition-colors cursor-pointer rounded ${
-            isLyricsActive ? 'text-emerald-400' : 'text-[#71717A] hover:text-[#F4F4F5]'
+            isLyricsActive ? 'text-[#2DD4BF]' : 'text-[#71717A] hover:text-[#F4F4F5]'
           }`}
           title="Lyrics"
         >
@@ -300,7 +306,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
         <button
           onClick={onToggleQueue}
           className={`p-1.5 transition-colors cursor-pointer rounded ${
-            isQueueActive ? 'text-emerald-400' : 'text-[#71717A] hover:text-[#F4F4F5]'
+            isQueueActive ? 'text-[#2DD4BF]' : 'text-[#71717A] hover:text-[#F4F4F5]'
           }`}
           title="Queue"
         >
@@ -338,9 +344,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
 
           <div className="relative flex-1 h-1 bg-white/[0.08] hover:h-1.5 transition-all rounded-full cursor-pointer overflow-hidden">
             <div
-              className={`h-full rounded-full ${
-                isVolumeHovered ? 'bg-emerald-400' : 'bg-[#E4E4E7]'
-              }`}
+              className="h-full rounded-full bg-[#2DD4BF]"
               style={{ width: `${volume * 100}%` }}
             />
             <input
@@ -354,6 +358,19 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
             />
           </div>
         </div>
+
+        {/* Expand / Collapse Now Playing View */}
+        <button
+          onClick={onExpandNowPlaying}
+          className="p-1 text-[#8E96A0] hover:text-white transition-colors cursor-pointer rounded ml-1"
+          title={isNowPlayingOpen ? 'Collapse Now Playing' : 'Expand Now Playing'}
+        >
+          {isNowPlayingOpen ? (
+            <ChevronDown className="size-4.5" />
+          ) : (
+            <ChevronUp className="size-4.5" />
+          )}
+        </button>
       </div>
     </footer>
   );

@@ -53,7 +53,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   const handleClose = () => window.electronAPI?.close();
 
   return (
-    <header className="h-11 w-full bg-[#080809] border-b border-white/[0.05] flex items-center justify-between px-4 select-none drag-region z-50 text-xs text-[#8E8E93]">
+    <header className="h-11 w-full bg-[#070B0E] border-b border-white/[0.05] flex items-center justify-between px-4 select-none drag-region z-50 text-xs text-[#8E8E93]">
       {/* Left: Window History Navigation Buttons */}
       <div className="flex items-center gap-2 no-drag">
         <button
@@ -82,15 +82,15 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       <div className="flex-1 max-w-sm mx-4 flex items-center justify-center no-drag">
         <button
           onClick={onOpenSearch}
-          className="w-full h-7.5 px-3 rounded-lg bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.06] flex items-center justify-between text-[#71717A] hover:text-[#A1A1AA] transition-colors cursor-pointer group"
+          className="w-full h-8 px-3.5 rounded-full bg-[#0E141B] hover:bg-[#131B24] border border-white/[0.08] flex items-center justify-between text-[#8E96A0] hover:text-white transition-colors cursor-pointer group"
         >
-          <div className="flex items-center gap-2 truncate">
-            <Search className="size-3.5 text-[#71717A] group-hover:text-[#A1A1AA] shrink-0" />
-            <span className="text-xs truncate">
-              {currentTrack ? currentTrack.title : 'Search songs, artists...'}
+          <div className="flex items-center gap-2.5 truncate">
+            <Search className="size-3.5 text-[#8E96A0] group-hover:text-[#2DD4BF] shrink-0 transition-colors" />
+            <span className="text-xs text-[#8E96A0] group-hover:text-white truncate font-medium">
+              Search songs, artists, albums...
             </span>
           </div>
-          <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] font-mono text-[9px] text-[#71717A]">
+          <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/[0.08] font-mono text-[9px] text-[#8E96A0]">
             Ctrl K
           </kbd>
         </button>

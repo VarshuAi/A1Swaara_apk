@@ -25,6 +25,7 @@ interface ArtistViewProps {
   likedSongIds: Set<string>;
   onDownloadTrack: (track: Track) => void;
   onBack?: () => void;
+  onOpenArtist?: (artistNameOrId: string) => void;
 }
 
 export const ArtistView: React.FC<ArtistViewProps> = ({
@@ -37,6 +38,7 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
   likedSongIds,
   onDownloadTrack,
   onBack,
+  onOpenArtist,
 }) => {
   const [artist, setArtist] = useState<ArtistDetails | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -117,7 +119,7 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
   return (
     <div className="flex-1 h-full overflow-y-auto bg-[#080809] select-none font-sans scrollbar-thin">
       {/* 1. Cinematic Hero Header */}
-      <div className="relative h-64 sm:h-72 md:h-84 w-full flex flex-col justify-between p-6 sm:p-8 overflow-hidden bg-[#0A0A0D]">
+      <div className="relative min-h-[260px] sm:min-h-[300px] md:min-h-[340px] w-full flex flex-col justify-between p-6 sm:p-8 overflow-hidden bg-[#0A0A0D]">
         {/* Background Image / Banner */}
         {artist.bannerUrl ? (
           <img
@@ -130,7 +132,7 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
             <img
               src={artist.avatarUrl}
               alt={artist.name}
-              className="size-full object-cover blur-md scale-110 opacity-30"
+              className="size-full object-cover blur-xl scale-110 opacity-25"
             />
           </div>
         ) : null}
@@ -151,22 +153,34 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
           </div>
         )}
 
-        {/* Hero Metadata & Typography */}
-        <div className="relative z-10 space-y-1.5 mt-auto">
-          {artist.verified && (
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#10B981]">
-              <CheckCircle2 className="size-4 fill-current" />
-              <span>Verified Artist</span>
+        {/* Hero Metadata & Typography with Real Circular Avatar */}
+        <div className="relative z-10 flex items-end gap-5 sm:gap-6 mt-auto">
+          {artist.avatarUrl && (
+            <div className="relative size-24 sm:size-32 md:size-36 rounded-full overflow-hidden shrink-0 border-2 sm:border-3 border-white/20 shadow-2xl bg-[#141416]">
+              <img
+                src={artist.avatarUrl}
+                alt={artist.name}
+                className="size-full object-cover"
+              />
             </div>
           )}
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight">
-            {artist.name}
-          </h1>
+          <div className="space-y-1.5 pb-1">
+            {artist.verified && (
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#10B981]">
+                <CheckCircle2 className="size-4 fill-current" />
+                <span>Verified Artist</span>
+              </div>
+            )}
 
-          <p className="text-xs sm:text-sm text-[#8E8E93] flex items-center gap-2">
-            <span>{artist.subscriberCountText || 'Artist'}</span>
-          </p>
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">
+              {artist.name}
+            </h1>
+
+            <p className="text-xs sm:text-sm text-[#8E8E93] flex items-center gap-2">
+              <span>{artist.subscriberCountText || 'Artist'}</span>
+            </p>
+          </div>
         </div>
       </div>
 
@@ -356,7 +370,77 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
           </div>
         )}
 
-        {/* 5. About Section */}
+        {/* 4. Albums & Singles */}
+        {artist.albums && artist.albums.length > 0 && (
+          <div className="space-y-3 pt-2">
+            <h2 className="text-lg font-bold text-white tracking-tight">
+              Albums & EPs
+            </h2>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+              {artist.albums.map((album) => (
+                <div
+                  key={album.id}
+                  className="group p-3 rounded-xl bg-[#111113] hover:bg-[#141416] border border-white/[0.06] hover:border-white/10 transition-colors flex flex-col space-y-2.5 cursor-pointer relative"
+                >
+                  <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-[#18181B]">
+                    <img
+                      src={album.artwork}
+                      alt={album.title}
+                      className="size-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-xs text-white truncate group-hover:text-[#10B981] transition-colors">
+                      {album.title}
+                    </h4>
+                    <p className="text-[11px] text-[#8E8E93] mt-0.5">{album.year || 'Album'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 5. Fans Also Like (Similar Artists with Real Circular Portraits) */}
+        {artist.similarArtists && artist.similarArtists.length > 0 && (
+          <div className="space-y-3 pt-2">
+            <h2 className="text-lg font-bold text-white tracking-tight">
+              Fans Also Like
+            </h2>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+              {artist.similarArtists.map((sim) => (
+                <div
+                  key={sim.id}
+                  onClick={() => {
+                    if (onOpenArtist) {
+                      onOpenArtist(sim.browseId || sim.name);
+                    }
+                  }}
+                  className="group cursor-pointer flex flex-col items-center text-center p-3 rounded-xl bg-[#111113] hover:bg-[#141416] border border-white/[0.06] hover:border-white/10 transition-colors"
+                >
+                  <div className="relative size-20 rounded-full overflow-hidden mb-2.5 bg-[#18181B] border border-white/[0.08] group-hover:border-[#10B981]/50 transition-colors shadow-md">
+                    <img
+                      src={sim.avatarUrl}
+                      alt={sim.name}
+                      className="size-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                  </div>
+                  <h4 className="font-semibold text-xs text-white truncate w-full group-hover:text-[#10B981] transition-colors">
+                    {sim.name}
+                  </h4>
+                  <p className="text-[11px] text-[#8E8E93] truncate w-full mt-0.5">
+                    {sim.subscribers || 'Artist'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 6. About Section */}
         <div className="space-y-3 pt-2">
           <h2 className="text-lg font-bold text-white tracking-tight">
             About

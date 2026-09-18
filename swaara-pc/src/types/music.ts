@@ -70,6 +70,21 @@ export interface Playlist {
   createdAt: number;
 }
 
+export interface ArtistSearchResult {
+  id: string;
+  name: string;
+  browseId: string;
+  avatarUrl: string;
+  subscribers?: string;
+}
+
+export interface ArtistReleaseItem {
+  id: string;
+  title: string;
+  year?: string;
+  artwork?: string;
+}
+
 export interface ArtistDetails {
   id: string;
   name: string;
@@ -81,6 +96,9 @@ export interface ArtistDetails {
   description?: string;
   topTracks: Track[];
   latestReleases: Track[];
+  albums?: ArtistReleaseItem[];
+  singles?: ArtistReleaseItem[];
+  similarArtists?: ArtistSearchResult[];
 }
 
 export type ActiveTab = 'discover' | 'search' | 'library' | 'liked' | 'downloads' | 'artist' | 'local' | 'history';

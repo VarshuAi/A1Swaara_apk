@@ -579,7 +579,7 @@ export function App() {
       />
 
       {/* Main Layout: Slim Navigation + Continuous Content */}
-      <div className="flex-1 flex overflow-hidden relative bg-[#080809]">
+      <div className="flex-1 flex overflow-hidden relative bg-[#070B0E]">
         {/* Navigation Sidebar */}
         <Sidebar
           activeTab={activeTab}
@@ -596,13 +596,25 @@ export function App() {
         />
 
         {/* Continuous Center Viewport */}
-        <main className="flex-1 h-full overflow-hidden flex flex-col bg-[#0B0B0D] relative border-l border-white/[0.05]">
+        <main className="flex-1 h-full overflow-hidden flex flex-col bg-[#070B0E] relative border-l border-white/[0.05]">
           {isNowPlayingOpen && currentTrack ? (
             <NowPlayingView
               track={currentTrack}
               isPlaying={isPlaying}
               currentTime={currentTime}
+              duration={duration}
               onClose={() => setIsNowPlayingOpen(false)}
+              onTogglePlay={() => audioEngine.togglePlay()}
+              onPrev={handlePrev}
+              onNext={handleNext}
+              onToggleShuffle={() => setIsShuffle(!isShuffle)}
+              isShuffle={isShuffle}
+              onToggleRepeat={() => setIsRepeat(!isRepeat)}
+              isRepeat={isRepeat}
+              queue={queue}
+              onPlayTrack={handlePlayTrack}
+              onClearQueue={() => setQueue([])}
+              onOpenArtist={handleOpenArtist}
               onToggleLike={() => handleToggleLike()}
               isLiked={isCurrentLiked}
               onDownload={() => handleDownloadTrack(currentTrack)}
@@ -628,6 +640,7 @@ export function App() {
               likedSongIds={likedSongIds}
               onDownloadTrack={handleDownloadTrack}
               onBack={handleGoBack}
+              onOpenArtist={handleOpenArtist}
             />
           ) : activeTab === 'discover' ? (
             <DiscoverView
@@ -750,9 +763,10 @@ export function App() {
         onToggleQueue={() => setIsQueueOpen(!isQueueOpen)}
         onToggleInsights={() => setIsInsightsOpen(!isInsightsOpen)}
         onToggleFullscreen={handleToggleFullscreen}
-        onExpandNowPlaying={() => setIsNowPlayingOpen(true)}
+        onExpandNowPlaying={() => setIsNowPlayingOpen((prev) => !prev)}
         onDownloadTrack={handleDownloadTrack}
         onOpenArtist={handleOpenArtist}
+        isNowPlayingOpen={isNowPlayingOpen}
         isLyricsActive={isNowPlayingOpen}
         isInsightsActive={isInsightsOpen}
         isQueueActive={isQueueOpen}
