@@ -1,10 +1,10 @@
 {
-  "version": "1.0.1",
-  "versionCode": 2,
+  "version": "1.0.2",
+  "versionCode": 3,
   "minRequiredVersion": "1.0.0",
   "forceUpdate": true,
-  "title": "A1 Swaara v1.0.1 - Sleek Player Redesign & OTA",
-  "changelog": "- Redesigned Now Playing screen with edge-to-edge balanced vertical layout\n- Eliminated bottom empty space and aligned 5-column controls\n- Unified top header with integrated Player/Lyrics toggle\n- Audiophile 320 KBPS HQ capsule integrated alongside artist info\n- Ambient album artwork glow and responsive screen adaptation",
-  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.1.apk",
-  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.1"
+  "title": "A1 Swaara v1.0.2 - Official Luxury Monogram Icon & OTA Fix",
+  "changelog": "- Official luxury satin silver monogram icon with sound wave bars\n- Fixed repeated update popup issue (hardened version & versionCode verification)\n- Enhanced cache-busting OTA checking to prevent CDN staleness\n- Full edge-to-edge balanced player layout with 5-column controls",
+  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.2.apk",
+  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.2"
 }
