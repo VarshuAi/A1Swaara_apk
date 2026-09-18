@@ -639,8 +639,16 @@ export function App() {
             <NowPlayingView
               track={currentTrack}
               isPlaying={isPlaying}
+              isLoading={isLoading}
               currentTime={currentTime}
               duration={duration}
+              buffered={buffered}
+              volume={volume}
+              onChangeVolume={(vol) => {
+                setVolume(vol);
+                audioEngine.setVolume(vol);
+                storage.saveSavedVolume(vol);
+              }}
               onClose={() => setIsNowPlayingOpen(false)}
               onTogglePlay={() => audioEngine.togglePlay()}
               onPrev={handlePrev}
@@ -657,6 +665,9 @@ export function App() {
                 setQueue(nextQueue);
                 handlePlayTrack(track, true);
               }}
+              onRemoveFromQueue={(index) => {
+                setQueue((prev) => prev.filter((_, i) => i !== index));
+              }}
               onClearQueue={() => setQueue([])}
               onOpenArtist={handleOpenArtist}
               onToggleLike={() => handleToggleLike()}
@@ -672,6 +683,7 @@ export function App() {
               onChangeSpeed={handleChangeSpeed}
               sleepTimerOption={sleepTimerOption}
               onSelectSleepTimer={handleSelectSleepTimer}
+              isAutoDJ={isAutoDJ}
             />
           ) : activeTab === 'artist' && selectedArtist ? (
             <ArtistView
@@ -777,55 +789,57 @@ export function App() {
         />
       </div>
 
-      {/* Bottom Sticky Player Bar */}
-      <PlayerBar
-        currentTrack={currentTrack}
-        isPlaying={isPlaying}
-        isLoading={isLoading}
-        currentTime={currentTime}
-        duration={duration}
-        buffered={buffered}
-        volume={volume}
-        isShuffle={isShuffle}
-        isRepeat={isRepeat}
-        isLiked={isCurrentLiked}
-        onTogglePlay={() => audioEngine.togglePlay()}
-        onSeek={(t) => audioEngine.seek(t)}
-        onPrev={handlePrev}
-        onNext={handleNext}
-        onToggleShuffle={() => setIsShuffle(!isShuffle)}
-        onToggleRepeat={() => setIsRepeat(!isRepeat)}
-        onToggleLike={() => handleToggleLike()}
-        onChangeVolume={(vol) => {
-          setVolume(vol);
-          audioEngine.setVolume(vol);
-          storage.saveSavedVolume(vol);
-        }}
-        onOpenLyrics={() => setIsNowPlayingOpen(true)}
-        onOpenEqualizer={() => setIsEqualizerOpen(true)}
-        onToggleQueue={() => setIsQueueOpen(!isQueueOpen)}
-        onToggleInsights={() => setIsInsightsOpen(!isInsightsOpen)}
-        onToggleFullscreen={handleToggleFullscreen}
-        onExpandNowPlaying={() => setIsNowPlayingOpen((prev) => !prev)}
-        onDownloadTrack={handleDownloadTrack}
-        onOpenArtist={handleOpenArtist}
-        isNowPlayingOpen={isNowPlayingOpen}
-        isLyricsActive={isNowPlayingOpen}
-        isInsightsActive={isInsightsOpen}
-        isQueueActive={isQueueOpen}
-        isDownloading={isDownloading}
-        isSpatialAudio={isSpatialAudio}
-        onToggleSpatialAudio={handleToggleSpatialAudio}
-        playbackSpeed={playbackSpeed}
-        onChangeSpeed={handleChangeSpeed}
-        isAutoDJ={isAutoDJ}
-        onToggleAutoDJ={handleToggleAutoDJ}
-        algorithmMode={algorithmMode}
-        onChangeAlgorithmMode={(mode) => {
-          setAlgorithmMode(mode);
-          showToast(`Harmonic Engine Mode: ${mode.toUpperCase()} ⚡`);
-        }}
-      />
+      {/* Bottom Sticky Player Bar (Only shown when not in full Now Playing view) */}
+      {!isNowPlayingOpen && (
+        <PlayerBar
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          isLoading={isLoading}
+          currentTime={currentTime}
+          duration={duration}
+          buffered={buffered}
+          volume={volume}
+          isShuffle={isShuffle}
+          isRepeat={isRepeat}
+          isLiked={isCurrentLiked}
+          onTogglePlay={() => audioEngine.togglePlay()}
+          onSeek={(t) => audioEngine.seek(t)}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onToggleShuffle={() => setIsShuffle(!isShuffle)}
+          onToggleRepeat={() => setIsRepeat(!isRepeat)}
+          onToggleLike={() => handleToggleLike()}
+          onChangeVolume={(vol) => {
+            setVolume(vol);
+            audioEngine.setVolume(vol);
+            storage.saveSavedVolume(vol);
+          }}
+          onOpenLyrics={() => setIsNowPlayingOpen(true)}
+          onOpenEqualizer={() => setIsEqualizerOpen(true)}
+          onToggleQueue={() => setIsQueueOpen(!isQueueOpen)}
+          onToggleInsights={() => setIsInsightsOpen(!isInsightsOpen)}
+          onToggleFullscreen={handleToggleFullscreen}
+          onExpandNowPlaying={() => setIsNowPlayingOpen((prev) => !prev)}
+          onDownloadTrack={handleDownloadTrack}
+          onOpenArtist={handleOpenArtist}
+          isNowPlayingOpen={isNowPlayingOpen}
+          isLyricsActive={isNowPlayingOpen}
+          isInsightsActive={isInsightsOpen}
+          isQueueActive={isQueueOpen}
+          isDownloading={isDownloading}
+          isSpatialAudio={isSpatialAudio}
+          onToggleSpatialAudio={handleToggleSpatialAudio}
+          playbackSpeed={playbackSpeed}
+          onChangeSpeed={handleChangeSpeed}
+          isAutoDJ={isAutoDJ}
+          onToggleAutoDJ={handleToggleAutoDJ}
+          algorithmMode={algorithmMode}
+          onChangeAlgorithmMode={(mode) => {
+            setAlgorithmMode(mode);
+            showToast(`Harmonic Engine Mode: ${mode.toUpperCase()} ⚡`);
+          }}
+        />
+      )}
 
       {/* Modals */}
       <EqualizerModal
