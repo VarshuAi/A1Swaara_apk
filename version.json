@@ -1,10 +1,10 @@
 {
-  "version": "1.0.0",
-  "versionCode": 1,
+  "version": "1.0.1",
+  "versionCode": 2,
   "minRequiredVersion": "1.0.0",
   "forceUpdate": true,
-  "title": "A1 Swaara v1.0.0 Official Release",
-  "changelog": "- Official Launch of A1 Swaara with cinematic obsidian UI\n- Instagram Notes & Social Share Studio (60-char vibe status + live web share player)\n- Deep link integration for /song & a1swaara://song\n- Spotify & YouTube Playlist Importer (1-tap link import)\n- High-Speed 320 kbps Stream Downloader\n- Story Creator Studio (Instagram/WhatsApp Story Cards & 30s/60s Video)\n- Multi-language discovery & synchronized lyrics",
-  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.0.apk",
-  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.0"
+  "title": "A1 Swaara v1.0.1 - Sleek Player Redesign & OTA",
+  "changelog": "- Redesigned Now Playing screen with edge-to-edge balanced vertical layout\n- Eliminated bottom empty space and aligned 5-column controls\n- Unified top header with integrated Player/Lyrics toggle\n- Audiophile 320 KBPS HQ capsule integrated alongside artist info\n- Ambient album artwork glow and responsive screen adaptation",
+  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.1.apk",
+  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.1"
 }
