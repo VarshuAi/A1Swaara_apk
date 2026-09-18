@@ -496,6 +496,13 @@ export function App() {
           e.preventDefault();
           setIsQueueOpen((prev) => !prev);
           break;
+        case 'KeyK':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            navigateTo('search', null);
+            setIsNowPlayingOpen(false);
+          }
+          break;
         case 'KeyN':
           e.preventDefault();
           handleNext();

@@ -13,7 +13,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { Track, ArtistSearchResult } from '../types/music';
-import { searchMusic, searchArtists } from '../services/api';
+import { searchMusic, searchArtists, fetchSearchSuggestions } from '../services/api';
 
 interface SearchViewProps {
   onPlayTrack: (track: Track) => void;
@@ -32,6 +32,19 @@ function formatDuration(secs: number): string {
   const s = Math.floor(secs % 60);
   return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
+
+const POPULAR_SEARCH_CHIPS = [
+  'Arijit Singh',
+  'Anirudh Ravichander',
+  'Kannada Top Hits',
+  'Sid Sriram',
+  'Bollywood Lo-Fi',
+  'The Weeknd',
+  'Shreya Ghoshal',
+  'Punjabi Hits 2026',
+  'Sanjith Hegde',
+  'Acoustic Unplugged',
+];
 
 const BROWSE_CATEGORIES = [
   { name: 'Kannada Hits', bg: 'bg-[#1e1b4b]', border: 'border-indigo-900/40', query: 'Top Kannada Songs Hits' },
@@ -55,11 +68,33 @@ export const SearchView: React.FC<SearchViewProps> = ({
   onOpenArtist,
 }) => {
   const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [results, setResults] = useState<Track[]>([]);
   const [matchingArtists, setMatchingArtists] = useState<ArtistSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Live Autocomplete Suggestions Fetcher
+  useEffect(() => {
+    if (!query.trim() || query.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      fetchSearchSuggestions(query)
+        .then((suggs) => {
+          // Filter out exact match
+          const filtered = suggs.filter((s) => s.toLowerCase() !== query.toLowerCase());
+          setSuggestions(filtered.slice(0, 6));
+        })
+        .catch(() => setSuggestions([]));
+    }, 180);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  // Main Songs & Artists Search Fetcher
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
@@ -91,34 +126,80 @@ export const SearchView: React.FC<SearchViewProps> = ({
     inputRef.current?.focus();
   }, []);
 
+  const handleSelectQuery = (selectedText: string) => {
+    setQuery(selectedText);
+    setSuggestions([]);
+  };
+
   const topResult = results[0];
   const otherResults = results.slice(1);
 
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-[#080809] p-6 sm:p-8 space-y-7 select-none font-sans scrollbar-thin">
-      {/* Search Input Field */}
-      <div className="relative max-w-xl">
-        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-[#71717A]" />
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search songs, artists, soundtracks, or moods..."
-          className="w-full h-11 pl-11 pr-11 rounded-xl bg-[#121214] border border-white/[0.08] focus:border-white/20 text-white placeholder-[#71717A] text-sm font-medium focus:outline-none transition-colors"
-        />
-        {isLoading ? (
-          <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-            <Loader2 className="size-4 animate-spin text-[#10B981]" />
+    <div className="flex-1 h-full overflow-y-auto bg-[#070B0E] p-6 sm:p-8 space-y-6 select-none font-sans scrollbar-thin">
+      {/* Search Input Field & Auto Suggestions */}
+      <div className="space-y-3 max-w-2xl">
+        <div className="relative">
+          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-[#71717A]" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search songs, artists, soundtracks, or moods..."
+            className="w-full h-11 pl-11 pr-11 rounded-xl bg-[#0E141B] border border-white/[0.08] focus:border-[#2DD4BF]/50 text-white placeholder-[#71717A] text-sm font-medium focus:outline-none transition-colors shadow-inner"
+          />
+          {isLoading ? (
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+              <Loader2 className="size-4 animate-spin text-[#2DD4BF]" />
+            </div>
+          ) : query ? (
+            <button
+              onClick={() => {
+                setQuery('');
+                setSuggestions([]);
+              }}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#71717A] hover:text-white cursor-pointer p-1 rounded-md transition-colors"
+            >
+              <X className="size-4" />
+            </button>
+          ) : null}
+        </div>
+
+        {/* Live Autocomplete Suggestions Strip */}
+        {suggestions.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
+            <span className="text-[11px] font-semibold text-[#71717A] uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
+              <TrendingUp className="size-3 text-[#2DD4BF]" /> Suggested:
+            </span>
+            {suggestions.map((sug, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSelectQuery(sug)}
+                className="px-3 py-1 rounded-full text-xs font-medium bg-[#131B24] hover:bg-[#1A2430] border border-white/[0.08] hover:border-[#2DD4BF]/40 text-[#D1D5DB] hover:text-white transition-colors cursor-pointer shrink-0"
+              >
+                {sug}
+              </button>
+            ))}
           </div>
-        ) : query ? (
-          <button
-            onClick={() => setQuery('')}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#71717A] hover:text-white cursor-pointer p-1 rounded-md transition-colors"
-          >
-            <X className="size-4" />
-          </button>
-        ) : null}
+        )}
+
+        {/* Quick Popular Searches if query is empty */}
+        {!query && (
+          <div className="space-y-2 pt-1">
+            <p className="text-xs font-medium text-[#71717A]">Popular Searches</p>
+            <div className="flex flex-wrap gap-2">
+              {POPULAR_SEARCH_CHIPS.map((chip, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSelectQuery(chip)}
+                  className="px-3 py-1 rounded-md text-xs font-medium bg-[#0E141B] hover:bg-[#151E28] border border-white/[0.06] hover:border-white/15 text-[#9CA3AF] hover:text-white transition-colors cursor-pointer"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Results View */}

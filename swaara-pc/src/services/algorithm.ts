@@ -123,29 +123,43 @@ export function calculateTrackAffinity(
     score += 25;
   }
 
-  // 5. Anti-Fatigue / Decay Penalty (prevent playing the same song repeatedly)
+  // 5. Anti-Fatigue & Artist Pacing (prevent repetitive artists or re-playing recent songs)
   const recentIndex = history.slice(0, 15).findIndex((h) => h.id === candidate.id);
   if (recentIndex !== -1) {
     // Strongly penalize recently played tracks
-    score -= (15 - recentIndex) * 8;
+    score -= (15 - recentIndex) * 12;
+  }
+
+  // Artist pacing: if the last 2 songs played were already this artist, apply pacing penalty
+  const lastTwoArtists = history.slice(0, 2).map((h) => h.artist.toLowerCase().trim());
+  if (lastTwoArtists.length >= 2 && lastTwoArtists[0] === candArtistClean && lastTwoArtists[1] === candArtistClean) {
+    score -= 30; // Encourage variety
   }
 
   // 6. Mode-specific weighting
   if (mode === 'deep_cuts') {
-    // Reward novel artists not in the current history
+    // Reward novel artists not in the current history or liked tracks
     const inHistory = history.some((h) => h.artist.toLowerCase() === candArtistClean);
-    if (!inHistory) score += 35;
+    const inLiked = likedSongs.some((l) => l.artist.toLowerCase() === candArtistClean);
+    if (!inHistory && !inLiked) score += 40;
+    else if (!inHistory) score += 20;
   } else if (mode === 'high_energy') {
     if (candProfile.mood === 'party' || candProfile.mood === 'energetic') {
-      score += 40;
+      score += 45;
     }
   } else if (mode === 'chill') {
     if (candProfile.mood === 'chill' || candProfile.languageOrRegion === 'lofi') {
-      score += 40;
+      score += 45;
     }
   } else if (mode === 'vocal_acoustic') {
-    if (candProfile.mood === 'romantic' || candProfile.mood === 'melancholic' || candProfile.keywords.some(k => ['acoustic', 'unplugged', 'melody', 'soul', 'voice'].includes(k))) {
-      score += 40;
+    if (
+      candProfile.mood === 'romantic' ||
+      candProfile.mood === 'melancholic' ||
+      candProfile.keywords.some((k) =>
+        ['acoustic', 'unplugged', 'melody', 'soul', 'voice', 'classical', 'piano', 'guitar'].includes(k)
+      )
+    ) {
+      score += 45;
     }
   }
 
@@ -163,11 +177,11 @@ export async function getSmartNextTracks(
   const candidates: Map<string, Track> = new Map();
 
   try {
-    // 1. Primary: Fetch high-affinity tracks from YouTube Music Radio stream
+    // 1. Primary Engine: Fetch high-affinity YouTube Music Radio queue (ML similarity stream)
     const radioPromise = fetchRadioTracks(currentTrack.id)
       .then((radioTracks) => {
         radioTracks.forEach((t) => {
-          if (t.id !== currentTrack.id && t.duration > 40 && t.duration <= 480) {
+          if (t.id !== currentTrack.id && t.duration >= 45 && t.duration <= 480) {
             candidates.set(t.id, t);
           }
         });
@@ -178,33 +192,50 @@ export async function getSmartNextTracks(
     const profile = analyzeTrackProfile(currentTrack);
     let contextualQuery = `${currentTrack.artist} top songs`;
     if (mode === 'high_energy') {
-      contextualQuery = `${currentTrack.artist} dance party songs`;
+      contextualQuery = `${currentTrack.artist} dance party energetic hits`;
     } else if (mode === 'chill') {
-      contextualQuery = `${currentTrack.artist} lofi acoustic melody`;
+      contextualQuery = `${currentTrack.artist} lofi chill acoustic`;
     } else if (mode === 'vocal_acoustic') {
-      contextualQuery = `${currentTrack.artist} acoustic unplugged songs`;
+      contextualQuery = `${currentTrack.artist} acoustic unplugged melody`;
     } else if (mode === 'deep_cuts') {
-      contextualQuery = `${currentTrack.artist} rare live acoustic`;
+      contextualQuery = `${currentTrack.artist} rare live gems`;
     } else if (profile.languageOrRegion) {
-      contextualQuery = `${currentTrack.artist} ${profile.languageOrRegion} songs`;
+      contextualQuery = `${currentTrack.artist} ${profile.languageOrRegion} best hits`;
     }
 
     const searchPromise = searchMusic(contextualQuery)
       .then((results) => {
         results.forEach((t) => {
-          if (t.id !== currentTrack.id && t.duration > 40 && t.duration <= 480) {
+          if (t.id !== currentTrack.id && t.duration >= 45 && t.duration <= 480) {
             candidates.set(t.id, t);
           }
         });
       })
       .catch(() => {});
 
-    await Promise.allSettled([radioPromise, searchPromise]);
+    // 3. User Taste Blend: If user has liked songs, fetch a candidate pool from a liked artist
+    let tastePromise: Promise<void> = Promise.resolve();
+    if (likedSongs.length > 0 && Math.random() > 0.3) {
+      const randomLiked = likedSongs[Math.floor(Math.random() * likedSongs.length)];
+      if (randomLiked && randomLiked.artist && randomLiked.artist !== currentTrack.artist) {
+        tastePromise = searchMusic(`${randomLiked.artist} songs`)
+          .then((results) => {
+            results.slice(0, 5).forEach((t) => {
+              if (t.id !== currentTrack.id && t.duration >= 45 && t.duration <= 480) {
+                candidates.set(t.id, t);
+              }
+            });
+          })
+          .catch(() => {});
+      }
+    }
+
+    await Promise.allSettled([radioPromise, searchPromise, tastePromise]);
   } catch (err) {
     console.warn('Recommendation algorithm pipeline encountered warning:', err);
   }
 
-  // 3. Score and rank all candidate tracks
+  // 4. Score and rank all candidate tracks
   const candidateList = Array.from(candidates.values());
 
   const scored = candidateList.map((candidate) => ({
@@ -215,5 +246,31 @@ export async function getSmartNextTracks(
   // Sort descending by algorithmic score
   scored.sort((a, b) => b.score - a.score);
 
-  return scored.slice(0, count).map((item) => item.track);
+  // 5. Apply artist diversity filter so the top N tracks don't monopolize a single artist
+  const finalTracks: Track[] = [];
+  const artistCount: Record<string, number> = {};
+
+  for (const item of scored) {
+    const art = item.track.artist.toLowerCase().trim();
+    const currentArtistCount = artistCount[art] || 0;
+    // Max 2 tracks from the same artist in the immediate next recommendation batch
+    if (currentArtistCount < 2 || scored.length < count * 2) {
+      finalTracks.push(item.track);
+      artistCount[art] = currentArtistCount + 1;
+    }
+    if (finalTracks.length >= count) break;
+  }
+
+  // If diversity filter left fewer tracks than needed, backfill with remaining scored items
+  if (finalTracks.length < count) {
+    const includedIds = new Set(finalTracks.map((t) => t.id));
+    for (const item of scored) {
+      if (!includedIds.has(item.track.id)) {
+        finalTracks.push(item.track);
+        if (finalTracks.length >= count) break;
+      }
+    }
+  }
+
+  return finalTracks;
 }

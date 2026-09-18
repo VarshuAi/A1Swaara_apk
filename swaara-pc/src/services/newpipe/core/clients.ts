@@ -84,6 +84,7 @@ export class InnerTubeClient {
     YTM_SEARCH: 'https://music.youtube.com/youtubei/v1/search',
     YTM_NEXT: 'https://music.youtube.com/youtubei/v1/next',
     YTM_BROWSE: 'https://music.youtube.com/youtubei/v1/browse',
+    YTM_SUGGESTIONS: 'https://music.youtube.com/youtubei/v1/music/get_search_suggestions',
   };
 
   /**
@@ -284,6 +285,16 @@ export class InnerTubeClient {
       videoId,
       playlistId: `RDAMVM${videoId}`,
       isAudioOnly: true,
+    };
+  }
+
+  /**
+   * Prepares YouTube Music search autocomplete suggestions body
+   */
+  public static prepareYtMusicSuggestionsBody(input: string, clientContext: InnerTubeClientContext) {
+    return {
+      context: { client: clientContext },
+      input,
     };
   }
 }

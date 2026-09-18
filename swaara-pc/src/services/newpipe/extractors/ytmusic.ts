@@ -107,7 +107,8 @@ export class YTMusicExtractor {
           const album = bylineParts.length > 1 ? bylineParts[1] : undefined;
 
           const thumbs = item.thumbnail?.thumbnails || [];
-          const artwork = thumbs[thumbs.length - 1]?.url || `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg`;
+          const rawArtwork = thumbs[thumbs.length - 1]?.url || `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg`;
+          const artwork = this.getHighResImage(rawArtwork, 600, 600) || rawArtwork;
 
           tracks.push({
             id: item.videoId,
@@ -189,8 +190,9 @@ export class YTMusicExtractor {
 
     // High quality artwork
     const thumbnails = item.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
-    const artwork =
+    const rawArtwork =
       thumbnails[thumbnails.length - 1]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+    const artwork = this.getHighResImage(rawArtwork, 600, 600) || rawArtwork;
 
     return {
       id: videoId,
@@ -219,7 +221,72 @@ export class YTMusicExtractor {
       }
       return `${url}=w${width}-h${height}-p-l90-rj`;
     }
+    if (url.includes('i.ytimg.com/vi/')) {
+      return url.replace(/\/(?:default|mqdefault|hqdefault|sddefault)\.jpg/, '/hq720.jpg');
+    }
     return url;
+  }
+
+  /**
+   * Fetches live search autocomplete suggestions using YouTube Music InnerTube suggestions API,
+   * falling back to Google YouTube Suggest endpoint.
+   */
+  public static async getSearchSuggestions(query: string): Promise<string[]> {
+    if (!query || !query.trim()) return [];
+
+    const trimmed = query.trim();
+    try {
+      // 1. Try YouTube Music suggestions endpoint
+      const visitorData = await HttpClient.getVisitorData();
+      const remixContext = InnerTubeClient.createWebRemixContext(visitorData);
+      const body = InnerTubeClient.prepareYtMusicSuggestionsBody(trimmed, remixContext);
+
+      const data = await HttpClient.postJson<any>(
+        `${InnerTubeClient.ENDPOINTS.YTM_SUGGESTIONS}?prettyPrint=false`,
+        body,
+        { headers: InnerTubeClient.getYtMusicHeaders(), timeoutMs: 3500 }
+      );
+
+      const suggestions: string[] = [];
+      const contents = data?.contents?.[0]?.searchSuggestionsSectionRenderer?.contents;
+
+      if (Array.isArray(contents)) {
+        for (const item of contents) {
+          const renderer = item.searchSuggestionRenderer || item.historySuggestionRenderer;
+          if (!renderer) continue;
+
+          const q = renderer.navigationEndpoint?.searchEndpoint?.query;
+          if (q) {
+            suggestions.push(q);
+          } else if (Array.isArray(renderer.suggestion?.runs)) {
+            const text = renderer.suggestion.runs.map((r: any) => r.text).join('').trim();
+            if (text) suggestions.push(text);
+          }
+        }
+      }
+
+      if (suggestions.length > 0) {
+        return Array.from(new Set(suggestions)).slice(0, 8);
+      }
+    } catch {
+      // Fallback to Google suggest API
+    }
+
+    // 2. Fast Fallback: Google Suggest API
+    try {
+      const suggestUrl = `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(trimmed)}`;
+      const res = await fetch(HttpClient.resolveUrl(suggestUrl));
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json) && Array.isArray(json[1])) {
+          return (json[1] as string[]).slice(0, 8);
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    return [];
   }
 
   /**
