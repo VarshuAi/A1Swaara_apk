@@ -1,26 +1,53 @@
-const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, globalShortcut, Tray, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
 const http = require('http');
 
+// Set Application User Model ID for Windows Taskbar pinning & notifications
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.varshuai.a1swaara');
+}
+
+// Single Instance Lock (True "one-tap open" - prevents multiple instances & focuses running window)
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+  process.exit(0);
+}
+
 let mainWindow = null;
+let tray = null;
 let isMiniPlayer = false;
 let normalBounds = { width: 1280, height: 840 };
+
+// When user taps shortcut or launches exe again, focus existing window
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    if (!mainWindow.isVisible()) mainWindow.show();
+    mainWindow.focus();
+  }
+});
 
 // Ensure sound works without restriction
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 function createWindow() {
+  const iconIco = path.join(__dirname, 'icon.ico');
+  const iconPng = path.join(__dirname, 'icon.png');
+  const windowIcon = fs.existsSync(iconIco) ? iconIco : iconPng;
+
   mainWindow = new BrowserWindow({
     title: 'A1 Swaara — Desktop Studio',
+    icon: windowIcon,
     width: normalBounds.width,
     height: normalBounds.height,
     minWidth: 980,
     minHeight: 650,
     frame: false, // Obsidian frameless styling
     titleBarStyle: 'hidden',
-    backgroundColor: '#08080C',
+    backgroundColor: '#070B0E',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
@@ -60,12 +87,114 @@ function createWindow() {
   });
 }
 
+function createTray() {
+  const iconIco = path.join(__dirname, 'icon.ico');
+  const iconPng = path.join(__dirname, 'icon.png');
+  const trayIconPath = fs.existsSync(iconIco) ? iconIco : iconPng;
+
+  if (!fs.existsSync(trayIconPath)) return;
+
+  try {
+    tray = new Tray(trayIconPath);
+    tray.setToolTip('A1 Swaara — Desktop Music Player');
+
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'A1 Swaara — Desktop Studio',
+        enabled: false,
+      },
+      { type: 'separator' },
+      {
+        label: 'Open A1 Swaara',
+        click: () => {
+          if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.show();
+            mainWindow.focus();
+          }
+        },
+      },
+      {
+        label: 'Play / Pause (Space)',
+        click: () => {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('media-command', 'play-pause');
+          }
+        },
+      },
+      {
+        label: 'Next Track (Ctrl+Right)',
+        click: () => {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('media-command', 'next');
+          }
+        },
+      },
+      {
+        label: 'Previous Track (Ctrl+Left)',
+        click: () => {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('media-command', 'previous');
+          }
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit',
+        click: () => {
+          app.isQuitting = true;
+          app.quit();
+        },
+      },
+    ]);
+
+    tray.setContextMenu(contextMenu);
+    tray.on('click', () => {
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    });
+  } catch (err) {
+    console.warn('Tray creation warning:', err);
+  }
+}
+
 app.whenReady().then(() => {
   createWindow();
+  createTray();
+
+  // Register Global Hardware Media Keys
+  try {
+    globalShortcut.register('MediaPlayPause', () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('media-command', 'play-pause');
+      }
+    });
+    globalShortcut.register('MediaNextTrack', () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('media-command', 'next');
+      }
+    });
+    globalShortcut.register('MediaPreviousTrack', () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('media-command', 'previous');
+      }
+    });
+  } catch (err) {
+    console.warn('Global media shortcuts warning:', err);
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+});
+
+app.on('will-quit', () => {
+  try {
+    globalShortcut.unregisterAll();
+  } catch {}
 });
 
 app.on('window-all-closed', () => {

@@ -12,4 +12,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   downloadTrack: (payload) => ipcRenderer.invoke('download-track', payload),
   openDownloadsFolder: () => ipcRenderer.send('open-downloads-folder'),
+  onMediaCommand: (callback) => {
+    ipcRenderer.on('media-command', (event, cmd) => callback(cmd));
+  },
 });

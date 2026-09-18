@@ -358,6 +358,21 @@ export function App() {
     });
   }, [handleNext, handlePrev, activeEqPreset, volume]);
 
+  // Listen for hardware media keys dispatched by Electron main process
+  useEffect(() => {
+    if (window.electronAPI?.onMediaCommand) {
+      window.electronAPI.onMediaCommand((cmd) => {
+        if (cmd === 'play-pause') {
+          audioEngine.togglePlay();
+        } else if (cmd === 'next') {
+          handleNext();
+        } else if (cmd === 'previous') {
+          handlePrev();
+        }
+      });
+    }
+  }, [handleNext, handlePrev]);
+
   // Toggle Like
   const handleToggleLike = (trackToToggle?: Track) => {
     const target = trackToToggle || currentTrack;
@@ -490,6 +505,9 @@ export function App() {
           handlePrev();
           break;
         case 'Escape':
+          if (isNowPlayingOpen) {
+            setIsNowPlayingOpen(false);
+          }
           setIsEqualizerOpen(false);
           setIsStoryCreatorOpen(false);
           setIsQueueOpen(false);
@@ -504,7 +522,7 @@ export function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentTime, volume, handleNext, handlePrev, isFullscreen, handleToggleLike]);
+  }, [currentTime, volume, handleNext, handlePrev, isFullscreen, handleToggleLike, isNowPlayingOpen]);
 
   // Fullscreen toggle
   const handleToggleFullscreen = () => {

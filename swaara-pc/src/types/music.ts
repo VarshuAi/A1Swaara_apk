@@ -113,6 +113,7 @@ export interface ElectronAPI {
   onWindowStateChanged: (callback: (data: { isMaximized: boolean }) => void) => void;
   downloadTrack: (payload: { url: string; filename?: string; title: string; artist: string }) => Promise<{ success: boolean; path?: string; error?: string }>;
   openDownloadsFolder: () => void;
+  onMediaCommand?: (callback: (cmd: 'play-pause' | 'next' | 'previous') => void) => void;
 }
 
 declare global {

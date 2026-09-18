@@ -10,7 +10,8 @@
     "electron:dev": "vite --port 5173",
     "electron": "electron .",
     "start": "electron .",
-    "package:pc": "node scripts/package-pc.cjs"
+    "package:pc": "node scripts/package-pc.cjs",
+    "package:installer": "npm run build && electron-builder --win nsis --publish never"
   },
   "keywords": [
     "swaara",
@@ -37,8 +38,48 @@
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "^34.2.0",
+    "electron-builder": "^26.15.3",
+    "rcedit": "^5.0.2",
     "tailwindcss": "^4.1.2",
     "typescript": "^5.7.3",
     "vite": "^6.2.0"
+  },
+  "build": {
+    "appId": "com.varshuai.a1swaara",
+    "productName": "A1 Swaara",
+    "copyright": "Copyright © 2026 VarshuAi",
+    "publish": null,
+    "artifactName": "${productName}_Setup.${ext}",
+    "directories": {
+      "output": "../A1_Swaara_Installer",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "A1 Swaara",
+      "runAfterFinish": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico"
+    }
   }
 }
