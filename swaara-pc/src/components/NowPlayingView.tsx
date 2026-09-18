@@ -40,6 +40,7 @@ interface NowPlayingViewProps {
   isRepeat?: boolean;
   queue?: Track[];
   onPlayTrack?: (track: Track) => void;
+  onPlayQueueTrack?: (index: number) => void;
   onClearQueue?: () => void;
   onOpenArtist?: (artistName: string) => void;
   onToggleLike: () => void;
@@ -72,6 +73,7 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
   isRepeat = false,
   queue = [],
   onPlayTrack,
+  onPlayQueueTrack,
   onClearQueue,
   onOpenArtist,
   onToggleLike,
@@ -511,7 +513,7 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
                     queue.slice(0, 10).map((qTrack, idx) => (
                       <div
                         key={`${qTrack.id}-${idx}`}
-                        onClick={() => onPlayTrack && onPlayTrack(qTrack)}
+                        onClick={() => (onPlayQueueTrack ? onPlayQueueTrack(idx) : onPlayTrack && onPlayTrack(qTrack))}
                         className="p-2 rounded-xl hover:bg-white/[0.04] transition-colors flex items-center justify-between gap-3 cursor-pointer group"
                       >
                         <div className="flex items-center gap-2.5 truncate min-w-0">

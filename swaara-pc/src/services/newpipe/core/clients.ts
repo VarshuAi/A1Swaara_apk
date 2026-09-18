@@ -227,7 +227,7 @@ export class InnerTubeClient {
       clientId: CLIENT_CONSTANTS.WEB_REMIX.ID,
       visitorData,
       hl: 'en',
-      gl: 'US',
+      gl: 'IN',
     };
   }
 

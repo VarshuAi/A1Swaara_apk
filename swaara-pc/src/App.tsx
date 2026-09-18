@@ -162,9 +162,22 @@ export function App() {
   }, []);
 
   // Play a specific track
-  const handlePlayTrack = useCallback(async (track: Track) => {
+  const handlePlayTrack = useCallback(async (track: Track, keepExistingQueue: boolean = false) => {
     setIsLoading(true);
     setCurrentTrack(track);
+
+    // If starting a fresh track outside the existing queue, immediately reseed Up Next queue with kindred tracks
+    if (!keepExistingQueue && track.source !== 'local') {
+      getSmartNextTracks(track, historySongsRef.current, likedSongsRef.current, 12, algorithmModeRef.current)
+        .then((nextTracks) => {
+          if (nextTracks && nextTracks.length > 0) {
+            setQueue(nextTracks);
+          }
+        })
+        .catch((err) => {
+          console.warn('Failed to seed smart next tracks:', err);
+        });
+    }
 
     // Route local PC studio files through Web Audio 10-Band EQ & Spatial DSP
     if (track.source === 'local' && track.streamUrl) {
@@ -231,14 +244,14 @@ export function App() {
       const newQueue = [...currentQueue];
       newQueue.splice(nextIndex, 1);
       setQueue(newQueue);
-      handlePlayTrack(nextTrack);
+      handlePlayTrack(nextTrack, true);
     } else if (isAutoDJRef.current && currentTrackRef.current) {
       showToast('Smart AI DJ: Generating continuous stream...');
       getSmartNextTracks(
         currentTrackRef.current,
         historySongsRef.current,
         likedSongsRef.current,
-        6,
+        10,
         algorithmModeRef.current
       )
         .then((nextTracks) => {
@@ -246,7 +259,7 @@ export function App() {
             const first = nextTracks[0];
             const rest = nextTracks.slice(1);
             setQueue(rest);
-            handlePlayTrack(first);
+            handlePlayTrack(first, true);
           } else {
             showToast('Queue ended');
           }
@@ -264,7 +277,7 @@ export function App() {
     if (currentTime > 3) {
       audioEngine.seek(0);
     } else if (historySongs.length > 1) {
-      handlePlayTrack(historySongs[1]);
+      handlePlayTrack(historySongs[1], true);
     }
   }, [currentTime, historySongs, handlePlayTrack]);
 
@@ -273,7 +286,7 @@ export function App() {
     if (!isAutoDJ || !currentTrack || currentTrack.source === 'local') return;
 
     if (queue.length < 4) {
-      getSmartNextTracks(currentTrack, historySongs, likedSongs, 6, algorithmMode)
+      getSmartNextTracks(currentTrack, historySongs, likedSongs, 8, algorithmMode)
         .then((recs) => {
           if (recs.length > 0) {
             setQueue((prev) => {
@@ -556,7 +569,7 @@ export function App() {
     const list = shuffle ? [...tracks].sort(() => Math.random() - 0.5) : [...tracks];
     const first = list[0];
     setQueue(list.slice(1));
-    handlePlayTrack(first);
+    handlePlayTrack(first, true);
   };
 
   const handleAddToQueue = (track: Track) => {
@@ -638,6 +651,12 @@ export function App() {
               isRepeat={isRepeat}
               queue={queue}
               onPlayTrack={handlePlayTrack}
+              onPlayQueueTrack={(index) => {
+                const track = queue[index];
+                const nextQueue = queue.slice(index + 1);
+                setQueue(nextQueue);
+                handlePlayTrack(track, true);
+              }}
               onClearQueue={() => setQueue([])}
               onOpenArtist={handleOpenArtist}
               onToggleLike={() => handleToggleLike()}
@@ -747,10 +766,9 @@ export function App() {
           currentTrack={currentTrack}
           onPlayQueueTrack={(index) => {
             const track = queue[index];
-            const nextQueue = [...queue];
-            nextQueue.splice(index, 1);
+            const nextQueue = queue.slice(index + 1);
             setQueue(nextQueue);
-            handlePlayTrack(track);
+            handlePlayTrack(track, true);
           }}
           onRemoveFromQueue={(index) => {
             setQueue((prev) => prev.filter((_, i) => i !== index));
