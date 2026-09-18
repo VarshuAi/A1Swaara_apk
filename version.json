@@ -1,10 +1,10 @@
 {
-  "version": "1.0.2",
-  "versionCode": 3,
+  "version": "1.0.3",
+  "versionCode": 4,
   "minRequiredVersion": "1.0.0",
   "forceUpdate": true,
-  "title": "A1 Swaara v1.0.2 - Official Luxury Monogram Icon & OTA Fix",
-  "changelog": "- Official luxury satin silver monogram icon with sound wave bars\n- Fixed repeated update popup issue (hardened version & versionCode verification)\n- Enhanced cache-busting OTA checking to prevent CDN staleness\n- Full edge-to-edge balanced player layout with 5-column controls",
-  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.2.apk",
-  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.2"
+  "title": "A1 Swaara v1.0.3 - Artist Screen & Theme Harmonization",
+  "changelog": "- Completely overhauled Artist Screen and global theme to match A1 Swaara Obsidian & Emerald design\n- Replaced legacy purple theme with deep obsidian black background and emerald accents\n- Modernized Shuffle button, radio action button, and tab rail indicators with dark glass styling\n- Enhanced artist circular avatar with proportional sizing and ambient glow\n- Clean white and emerald typography across songs, albums, and singles sections",
+  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.3.apk",
+  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.3"
 }
