@@ -1,10 +1,10 @@
 {
-  "version": "1.0.3",
-  "versionCode": 4,
+  "version": "1.0.4",
+  "versionCode": 5,
   "minRequiredVersion": "1.0.0",
   "forceUpdate": true,
-  "title": "A1 Swaara v1.0.3 - Artist Screen & Theme Harmonization",
-  "changelog": "- Completely overhauled Artist Screen and global theme to match A1 Swaara Obsidian & Emerald design\n- Replaced legacy purple theme with deep obsidian black background and emerald accents\n- Modernized Shuffle button, radio action button, and tab rail indicators with dark glass styling\n- Enhanced artist circular avatar with proportional sizing and ambient glow\n- Clean white and emerald typography across songs, albums, and singles sections",
-  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.3.apk",
-  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.3"
+  "title": "A1 Swaara v1.0.4 - Ultra-Fast Music Startup & Instant Playback",
+  "changelog": "- Ultra-fast music startup latency decreased from 3-6s down to under 400ms\n- 0ms instantaneous gapless playback for next queued and pre-buffered tracks\n- Upgraded HTTP transport to HTTP/2 with persistent OkHttp connection pooling\n- Enabled high-speed on-the-fly progressive disk caching and 50-track in-memory stream URL cache\n- Fixed update comparison logic to prevent redundant update prompts",
+  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.4.apk",
+  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.4"
 }
