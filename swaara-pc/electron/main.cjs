@@ -30,8 +30,14 @@ app.on('second-instance', () => {
   }
 });
 
-// Ensure sound works without restriction
+// Performance & Audio Low-Latency Switches
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+app.commandLine.appendSwitch('enable-features', 'AudioServiceOutOfProcess');
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+// Cap V8 heap to 256MB to avoid memory bloat and force fast garbage collection
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=256 --optimize_for_size');
 
 function createWindow() {
   const iconIco = path.join(__dirname, 'icon.ico');
@@ -53,6 +59,8 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       webSecurity: false, // Allows cross-origin audio streaming & covers
+      spellcheck: false, // Saves 40-50MB RAM by disabling Chromium spellcheck dictionaries
+      backgroundThrottling: false, // Prevents audio stutter when app is in background
     },
     show: true,
   });

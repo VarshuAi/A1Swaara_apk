@@ -414,6 +414,7 @@ class AudioEngine {
       if (this.ytPollTimer) clearInterval(this.ytPollTimer);
 
       if (this.audio.src !== track.streamUrl) {
+        this.audio.pause();
         this.audio.src = track.streamUrl;
         this.audio.load();
       }

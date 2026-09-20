@@ -29,6 +29,7 @@ interface LibraryViewProps {
   onDownloadTrack: (track: Track) => void;
   onImportLocalFiles?: (files: FileList | File[]) => void;
   initialSubTab?: 'liked' | 'history' | 'downloads' | 'local';
+  onTrackContextMenu?: (e: React.MouseEvent, track: Track) => void;
 }
 
 function formatDuration(secs: number): string {
@@ -49,6 +50,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   onDownloadTrack,
   onImportLocalFiles,
   initialSubTab = 'liked',
+  onTrackContextMenu,
 }) => {
   const [activeTab, setActiveTab] = useState<'liked' | 'history' | 'downloads' | 'local'>(initialSubTab);
   const [searchFilter, setSearchFilter] = useState('');
@@ -265,6 +267,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 <div
                   key={track.id + i}
                   onClick={() => onPlayTrack(track)}
+                  onContextMenu={(e) => onTrackContextMenu && onTrackContextMenu(e, track)}
                   className="grid grid-cols-12 items-center px-4 py-2.5 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer group"
                 >
                   <div className="col-span-1 text-center text-xs font-mono text-[#71717A]">

@@ -118,6 +118,8 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
   isNowPlayingOpen = false,
 }) => {
   const [isScrubHovered, setIsScrubHovered] = useState(false);
+  const [scrubHoverTime, setScrubHoverTime] = useState<number | null>(null);
+  const [scrubHoverX, setScrubHoverX] = useState<number>(0);
   const [isVolumeHovered, setIsVolumeHovered] = useState(false);
   const [previousVolume, setPreviousVolume] = useState(volume);
 
@@ -131,6 +133,21 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
     } else {
       onChangeVolume(previousVolume || 0.85);
     }
+  };
+
+  const handleScrubMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pos = (e.clientX - rect.left) / rect.width;
+    const clamped = Math.max(0, Math.min(1, pos));
+    setScrubHoverTime(clamped * (duration || 1));
+    setScrubHoverX(e.clientX - rect.left);
+  };
+
+  const handleVolumeWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.05 : -0.05;
+    const nextVol = Math.max(0, Math.min(1, volume + delta));
+    onChangeVolume(nextVol);
   };
 
   const cycleAlgorithmMode = () => {
@@ -182,6 +199,18 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
               title={isLiked ? 'Saved' : 'Save to Library'}
             >
               <Heart className={`size-3.5 ${isLiked ? 'fill-[#2DD4BF]' : ''}`} />
+            </button>
+
+            {/* Hi-Fi 320k Studio Badge */}
+            <button
+              onClick={onOpenEqualizer}
+              className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#10B981]/10 border border-[#10B981]/30 hover:bg-[#10B981]/20 transition-all cursor-pointer shadow-[0_0_10px_rgba(16,185,129,0.15)] shrink-0"
+              title="Swaara 320 kbps Studio DSP Master (Click to open Equalizer)"
+            >
+              <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse" />
+              <span className="text-[9px] font-mono font-bold text-[#10B981] tracking-wider">
+                320K HI-FI
+              </span>
             </button>
           </>
         ) : (
@@ -259,8 +288,22 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
           <div
             className="relative flex-1 h-1 hover:h-1.5 bg-white/[0.08] rounded-full group cursor-pointer transition-all"
             onMouseEnter={() => setIsScrubHovered(true)}
-            onMouseLeave={() => setIsScrubHovered(false)}
+            onMouseLeave={() => {
+              setIsScrubHovered(false);
+              setScrubHoverTime(null);
+            }}
+            onMouseMove={handleScrubMouseMove}
           >
+            {/* Scrubber Hover Time Preview Tooltip */}
+            {isScrubHovered && scrubHoverTime !== null && (
+              <div
+                style={{ left: `${scrubHoverX}px` }}
+                className="absolute -top-7 -translate-x-1/2 px-2 py-0.5 rounded-md bg-[#0A0E13] border border-white/20 text-[10px] font-mono text-[#10B981] font-bold pointer-events-none shadow-2xl z-50 whitespace-nowrap"
+              >
+                {formatTime(scrubHoverTime)}
+              </div>
+            )}
+
             <div
               className="absolute top-0 left-0 h-full bg-white/[0.12] rounded-full pointer-events-none"
               style={{ width: `${bufferedPercent}%` }}
@@ -322,11 +365,13 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
           <SlidersHorizontal className="size-3.5" />
         </button>
 
-        {/* Volume */}
+        {/* Volume with Mouse Wheel Desktop Scrolling */}
         <div
-          className="flex items-center gap-2 group w-24"
+          className="flex items-center gap-2 group w-28"
           onMouseEnter={() => setIsVolumeHovered(true)}
           onMouseLeave={() => setIsVolumeHovered(false)}
+          onWheel={handleVolumeWheel}
+          title="Scroll mouse wheel over slider to adjust volume"
         >
           <button
             onClick={handleToggleMute}
@@ -357,6 +402,10 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
           </div>
+
+          <span className="text-[10px] font-mono text-zinc-400 group-hover:text-[#10B981] w-7 text-right select-none font-medium">
+            {Math.round(volume * 100)}%
+          </span>
         </div>
 
         {/* Expand / Collapse Now Playing View */}

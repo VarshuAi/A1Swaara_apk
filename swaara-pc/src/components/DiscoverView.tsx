@@ -34,6 +34,7 @@ interface DiscoverViewProps {
   onOpenArtist?: (artistName: string) => void;
   algorithmMode?: AlgorithmMode;
   onChangeAlgorithmMode?: (mode: AlgorithmMode) => void;
+  onTrackContextMenu?: (e: React.MouseEvent, track: Track) => void;
 }
 
 const POPULAR_ARTISTS = [
@@ -215,6 +216,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
   onOpenArtist,
   algorithmMode = 'flow',
   onChangeAlgorithmMode,
+  onTrackContextMenu,
 }) => {
   const [selectedMatrix, setSelectedMatrix] = useState(LANGUAGE_MATRICES[0]);
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -348,7 +350,10 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
 
       {/* 3. Cinematic Spotlight Hero Banner */}
       {spotlightTrack && (
-        <div className="relative w-full rounded-2xl overflow-hidden bg-[#0E141B] border border-white/[0.08] shadow-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 group">
+        <div
+          onContextMenu={(e) => onTrackContextMenu && onTrackContextMenu(e, spotlightTrack)}
+          className="relative w-full rounded-2xl overflow-hidden bg-[#0E141B] border border-white/[0.08] shadow-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 group"
+        >
           {/* Ambient blurred backdrop artwork */}
           <div
             className="absolute inset-0 bg-cover bg-center opacity-15 filter blur-3xl scale-125 pointer-events-none"
@@ -513,6 +518,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 <div
                   key={track.id}
                   onClick={() => onPlayTrack(track)}
+                  onContextMenu={(e) => onTrackContextMenu && onTrackContextMenu(e, track)}
                   className="group h-16 rounded-xl bg-[#0E141B] hover:bg-[#141C25] border border-white/[0.05] hover:border-white/[0.1] transition-all flex items-center justify-between overflow-hidden cursor-pointer pr-3"
                 >
                   <div className="flex items-center gap-3 h-full truncate pr-2">
@@ -611,6 +617,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 <div
                   key={track.id}
                   onClick={() => onPlayTrack(track)}
+                  onContextMenu={(e) => onTrackContextMenu && onTrackContextMenu(e, track)}
                   className="group cursor-pointer flex flex-col shrink-0 w-40 sm:w-44"
                 >
                   <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-[#0E141B] border border-white/[0.08] mb-2.5 shadow-md">
@@ -703,6 +710,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 <div
                   key={track.id}
                   onClick={() => onPlayTrack(track)}
+                  onContextMenu={(e) => onTrackContextMenu && onTrackContextMenu(e, track)}
                   className="group cursor-pointer flex flex-col shrink-0 w-40 sm:w-44"
                 >
                   <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-[#0E141B] border border-white/[0.08] mb-2.5 shadow-md">
@@ -844,6 +852,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 <div
                   key={track.id}
                   onClick={() => onPlayTrack(track)}
+                  onContextMenu={(e) => onTrackContextMenu && onTrackContextMenu(e, track)}
                   className="group cursor-pointer flex flex-col shrink-0 w-40 sm:w-44"
                 >
                   <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-[#0E141B] border border-white/[0.08] mb-2.5 shadow-md">

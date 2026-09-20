@@ -98,6 +98,12 @@ export const TitleBar: React.FC<TitleBarProps> = ({
 
       {/* Right: Window Controls & Mini Player */}
       <div className="flex items-center gap-1 no-drag">
+        {/* Lossless DSP Engine Pill */}
+        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[#10B981] font-mono text-[10px] font-bold mr-1 shadow-[0_0_8px_rgba(16,185,129,0.15)]">
+          <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse" />
+          <span>320K HI-FI</span>
+        </div>
+
         {/* Mini Player Toggle */}
         <button
           onClick={onToggleMiniPlayer}

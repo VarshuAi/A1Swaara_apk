@@ -26,6 +26,7 @@ interface ArtistViewProps {
   onDownloadTrack: (track: Track) => void;
   onBack?: () => void;
   onOpenArtist?: (artistNameOrId: string) => void;
+  onTrackContextMenu?: (e: React.MouseEvent, track: Track) => void;
 }
 
 export const ArtistView: React.FC<ArtistViewProps> = ({
@@ -39,6 +40,7 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
   onDownloadTrack,
   onBack,
   onOpenArtist,
+  onTrackContextMenu,
 }) => {
   const [artist, setArtist] = useState<ArtistDetails | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -246,6 +248,7 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
                 <div
                   key={track.id + index}
                   onClick={() => onPlayTrack(track)}
+                  onContextMenu={(e) => onTrackContextMenu && onTrackContextMenu(e, track)}
                   className={`group flex items-center justify-between p-2 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer ${
                     isCurrent ? 'bg-white/[0.03]' : ''
                   }`}

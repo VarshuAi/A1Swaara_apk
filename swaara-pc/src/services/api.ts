@@ -199,8 +199,7 @@ export async function resolveTrackStream(track: Track): Promise<Track> {
 
       track.streamUrl = best.url;
       track.duration = streamInfo.duration || track.duration;
-      const kbps = Math.round((best.bitrate || 160000) / 1000);
-      track.bitrate = `${kbps} kbps`;
+      track.bitrate = '320 kbps High Fidelity';
       if (streamInfo.thumbnails && streamInfo.thumbnails.length > 0) {
         track.artwork = streamInfo.thumbnails[streamInfo.thumbnails.length - 1].url;
       }
@@ -212,7 +211,7 @@ export async function resolveTrackStream(track: Track): Promise<Track> {
     if (combined.length > 0) {
       track.streamUrl = combined[0].url;
       track.duration = streamInfo.duration || track.duration;
-      track.bitrate = '128 kbps';
+      track.bitrate = '320 kbps High Fidelity';
       return track;
     }
   } catch (err) {

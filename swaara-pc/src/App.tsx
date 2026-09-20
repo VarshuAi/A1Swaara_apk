@@ -12,6 +12,7 @@ import { QueueDrawer } from './components/QueueDrawer';
 import { MiniPlayer } from './components/MiniPlayer';
 import { SongInsightsDrawer } from './components/SongInsightsDrawer';
 import { ArtistView } from './components/ArtistView';
+import { ContextMenu } from './components/ContextMenu';
 import { Track, ActiveTab, SyncedLyricLine, AlgorithmMode, SleepTimerOption } from './types/music';
 import { resolveTrackStream, fetchLyrics } from './services/api';
 import { audioEngine, DEFAULT_PRESETS } from './services/audioEngine';
@@ -63,6 +64,10 @@ export function App() {
   const [lyrics, setLyrics] = useState<{ text: string; synced: SyncedLyricLine[] }>({ text: '', synced: [] });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{
+    position: { x: number; y: number };
+    track: Track;
+  } | null>(null);
 
   const likedSongIds = new Set(likedSongs.map((s) => s.id));
   const isCurrentLiked = currentTrack ? likedSongIds.has(currentTrack.id) : false;
@@ -444,6 +449,21 @@ export function App() {
     }
   };
 
+  // Desktop Native Right-Click Context Menu Handlers
+  const handleOpenContextMenu = (e: React.MouseEvent, track: Track) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({
+      position: { x: e.clientX, y: e.clientY },
+      track,
+    });
+  };
+
+  const handlePlayNext = (track: Track) => {
+    setQueue((prev) => [track, ...prev.filter((t) => t.id !== track.id)]);
+    showToast(`Added to play next: ${track.title}`);
+  };
+
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -697,6 +717,7 @@ export function App() {
               onDownloadTrack={handleDownloadTrack}
               onBack={handleGoBack}
               onOpenArtist={handleOpenArtist}
+              onTrackContextMenu={handleOpenContextMenu}
             />
           ) : activeTab === 'discover' ? (
             <DiscoverView
@@ -712,6 +733,7 @@ export function App() {
                 setAlgorithmMode(mode);
                 showToast(`Harmonic Engine Mode: ${mode.toUpperCase()} ⚡`);
               }}
+              onTrackContextMenu={handleOpenContextMenu}
             />
           ) : activeTab === 'search' ? (
             <SearchView
@@ -723,6 +745,7 @@ export function App() {
               likedSongIds={likedSongIds}
               onDownloadTrack={handleDownloadTrack}
               onOpenArtist={handleOpenArtist}
+              onTrackContextMenu={handleOpenContextMenu}
             />
           ) : activeTab === 'local' ? (
             <LibraryView
@@ -736,6 +759,7 @@ export function App() {
               onDownloadTrack={handleDownloadTrack}
               onImportLocalFiles={handleImportLocalFiles}
               initialSubTab="local"
+              onTrackContextMenu={handleOpenContextMenu}
             />
           ) : (
             <LibraryView
@@ -757,6 +781,7 @@ export function App() {
                   ? 'history'
                   : 'liked'
               }
+              onTrackContextMenu={handleOpenContextMenu}
             />
           )}
         </main>
@@ -857,6 +882,22 @@ export function App() {
         onClose={() => setIsStoryCreatorOpen(false)}
         track={currentTrack}
       />
+
+      {/* Desktop Native Right-Click Context Menu */}
+      {contextMenu && (
+        <ContextMenu
+          position={contextMenu.position}
+          track={contextMenu.track}
+          isLiked={likedSongIds.has(contextMenu.track.id)}
+          onClose={() => setContextMenu(null)}
+          onPlayNow={(t) => handlePlayTrack(t, false)}
+          onPlayNext={handlePlayNext}
+          onAddToQueue={(t) => handleAddToQueue(t)}
+          onToggleLike={handleToggleLike}
+          onDownload={handleDownloadTrack}
+          onOpenArtist={handleOpenArtist}
+        />
+      )}
 
       {/* Floating Status Toast */}
       {toastMessage && (

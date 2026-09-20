@@ -24,6 +24,7 @@ interface SearchViewProps {
   likedSongIds: Set<string>;
   onDownloadTrack: (track: Track) => void;
   onOpenArtist?: (artistName: string) => void;
+  onTrackContextMenu?: (e: React.MouseEvent, track: Track) => void;
 }
 
 function formatDuration(secs: number): string {
@@ -66,6 +67,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
   likedSongIds,
   onDownloadTrack,
   onOpenArtist,
+  onTrackContextMenu,
 }) => {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -247,6 +249,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
                 </h3>
                 <div
                   onClick={() => onPlayTrack(topResult)}
+                  onContextMenu={(e) => onTrackContextMenu && onTrackContextMenu(e, topResult)}
                   className="p-5 rounded-2xl bg-[#111113] hover:bg-[#141416] border border-white/[0.06] hover:border-white/[0.12] transition-colors cursor-pointer group relative flex flex-col justify-between h-[230px]"
                 >
                   <div className="size-24 rounded-xl overflow-hidden bg-[#18181B] border border-white/[0.06]">
@@ -301,6 +304,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
                       <div
                         key={track.id}
                         onClick={() => onPlayTrack(track)}
+                        onContextMenu={(e) => onTrackContextMenu && onTrackContextMenu(e, track)}
                         className="flex items-center justify-between p-2 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer group"
                       >
                         <div className="flex items-center gap-3 truncate flex-1 min-w-0">
@@ -383,6 +387,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
                     <div
                       key={track.id + i}
                       onClick={() => onPlayTrack(track)}
+                      onContextMenu={(e) => onTrackContextMenu && onTrackContextMenu(e, track)}
                       className="grid grid-cols-12 items-center px-4 py-2.5 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer group"
                     >
                       <div className="col-span-1 text-center text-xs font-mono text-[#71717A]">
