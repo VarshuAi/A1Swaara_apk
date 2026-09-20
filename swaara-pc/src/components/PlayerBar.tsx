@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Play,
   Pause,
@@ -9,21 +9,16 @@ import {
   Volume2,
   VolumeX,
   Volume1,
-  Maximize2,
   Heart,
   ListMusic,
-  SlidersHorizontal,
   Mic2,
-  Download,
-  Info,
-  Disc3,
-  Loader2,
-  Sparkles,
-  Radio,
+  MoreHorizontal,
+  SlidersHorizontal,
   Headphones,
-  Gauge,
-  ChevronUp,
-  ChevronDown,
+  Download,
+  Maximize2,
+  Loader2,
+  Disc3,
 } from 'lucide-react';
 import { Track, AlgorithmMode } from '../types/music';
 
@@ -101,30 +96,33 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
   onToggleFullscreen,
   onExpandNowPlaying,
   onDownloadTrack,
-  onToggleInsights,
   onOpenArtist,
   isLyricsActive = false,
-  isInsightsActive = false,
   isQueueActive = false,
-  isDownloading = false,
   isSpatialAudio = false,
   onToggleSpatialAudio,
-  playbackSpeed = 1.0,
-  onChangeSpeed,
-  isAutoDJ = true,
-  onToggleAutoDJ,
-  algorithmMode = 'flow',
-  onChangeAlgorithmMode,
-  isNowPlayingOpen = false,
 }) => {
   const [isScrubHovered, setIsScrubHovered] = useState(false);
   const [scrubHoverTime, setScrubHoverTime] = useState<number | null>(null);
   const [scrubHoverX, setScrubHoverX] = useState<number>(0);
   const [isVolumeHovered, setIsVolumeHovered] = useState(false);
-  const [previousVolume, setPreviousVolume] = useState(volume);
+  const [previousVolume, setPreviousVolume] = useState<number>(volume);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
 
-  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
-  const bufferedPercent = duration > 0 ? (buffered / duration) * 100 : 0;
+  const progressPercent = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
+  const bufferedPercent = duration > 0 ? Math.min(100, (buffered / duration) * 100) : 0;
+
+  // Close More menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setIsMoreOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => window.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleToggleMute = () => {
     if (volume > 0) {
@@ -150,24 +148,16 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
     onChangeVolume(nextVol);
   };
 
-  const cycleAlgorithmMode = () => {
-    if (!onChangeAlgorithmMode) return;
-    const modes: AlgorithmMode[] = ['flow', 'high_energy', 'chill', 'vocal_acoustic', 'deep_cuts'];
-    const currIdx = modes.indexOf(algorithmMode);
-    const nextMode = modes[(currIdx + 1) % modes.length];
-    onChangeAlgorithmMode(nextMode);
-  };
-
   return (
-    <footer className="h-18 w-full bg-[#070B0E] border-t border-white/[0.06] px-5 flex items-center justify-between select-none z-40 relative font-sans">
+    <footer className="h-18 w-full bg-[#0B0D0F] border-t border-white/[0.06] px-5 flex items-center justify-between select-none z-40 relative font-sans">
       {/* 1. Left: Track Info & Artwork */}
       <div className="flex items-center gap-3 w-[28%] min-w-[180px] max-w-[300px]">
         {currentTrack ? (
           <>
             <div
               onClick={onExpandNowPlaying}
-              className="relative size-11 rounded-md overflow-hidden shrink-0 cursor-pointer bg-[#141418] border border-white/[0.06] group"
-              title="Expand Player"
+              className="relative size-11 rounded overflow-hidden shrink-0 cursor-pointer bg-[#101214] border border-white/[0.06] group"
+              title="Expand Now Playing"
             >
               <img
                 src={currentTrack.artwork}
@@ -179,13 +169,13 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
             <div className="truncate flex-1 min-w-0">
               <p
                 onClick={onExpandNowPlaying}
-                className="font-medium text-xs text-[#F4F4F5] hover:text-white transition-colors cursor-pointer truncate"
+                className="font-medium text-xs text-[#F5F5F5] hover:underline cursor-pointer truncate"
               >
                 {currentTrack.title}
               </p>
               <p
                 onClick={() => onOpenArtist && currentTrack.artist && onOpenArtist(currentTrack.artist)}
-                className="text-[11px] text-[#8E8E93] hover:text-[#F4F4F5] cursor-pointer truncate mt-0.5"
+                className="text-[11px] text-[#9A9FA3] hover:text-[#F5F5F5] cursor-pointer truncate mt-0.5"
               >
                 {currentTrack.artist}
               </p>
@@ -193,44 +183,32 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
 
             <button
               onClick={onToggleLike}
-              className={`p-1.5 transition-colors cursor-pointer ${
-                isLiked ? 'text-[#2DD4BF] fill-[#2DD4BF]' : 'text-[#71717A] hover:text-[#F4F4F5]'
+              className={`p-1.5 transition-colors cursor-pointer shrink-0 ${
+                isLiked ? 'text-[#10B981]' : 'text-[#9A9FA3] hover:text-[#F5F5F5]'
               }`}
-              title={isLiked ? 'Saved' : 'Save to Library'}
+              title={isLiked ? 'Saved to Liked Songs' : 'Save to Liked Songs'}
             >
-              <Heart className={`size-3.5 ${isLiked ? 'fill-[#2DD4BF]' : ''}`} />
-            </button>
-
-            {/* Hi-Fi 320k Studio Badge */}
-            <button
-              onClick={onOpenEqualizer}
-              className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#10B981]/10 border border-[#10B981]/30 hover:bg-[#10B981]/20 transition-all cursor-pointer shadow-[0_0_10px_rgba(16,185,129,0.15)] shrink-0"
-              title="Swaara 320 kbps Studio DSP Master (Click to open Equalizer)"
-            >
-              <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse" />
-              <span className="text-[9px] font-mono font-bold text-[#10B981] tracking-wider">
-                320K HI-FI
-              </span>
+              <Heart className={`size-3.5 ${isLiked ? 'fill-[#10B981]' : ''}`} />
             </button>
           </>
         ) : (
-          <div className="flex items-center gap-2.5 text-xs text-[#71717A]">
-            <div className="size-10 rounded-md bg-[#141418] border border-white/[0.04] flex items-center justify-center">
-              <Disc3 className="size-4 text-[#52525B]" />
+          <div className="flex items-center gap-2.5 text-xs text-[#9A9FA3]">
+            <div className="size-10 rounded bg-[#101214] border border-white/[0.04] flex items-center justify-center">
+              <Disc3 className="size-4 text-[#9A9FA3]/50" />
             </div>
-            <span>No track</span>
+            <span>No track playing</span>
           </div>
         )}
       </div>
 
       {/* 2. Center: Transport Controls & Scrubber */}
-      <div className="flex flex-col items-center justify-center w-[44%] max-w-[620px] gap-1.5">
+      <div className="flex flex-col items-center justify-center w-[44%] max-w-[580px] gap-1.5">
         {/* Buttons */}
         <div className="flex items-center gap-4">
           <button
             onClick={onToggleShuffle}
             className={`transition-colors cursor-pointer p-1 ${
-              isShuffle ? 'text-[#2DD4BF]' : 'text-[#71717A] hover:text-[#F4F4F5]'
+              isShuffle ? 'text-[#10B981]' : 'text-[#9A9FA3] hover:text-[#F5F5F5]'
             }`}
             title="Shuffle"
           >
@@ -239,7 +217,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
 
           <button
             onClick={onPrev}
-            className="text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors cursor-pointer p-1"
+            className="text-[#9A9FA3] hover:text-[#F5F5F5] transition-colors cursor-pointer p-1"
             title="Previous"
           >
             <SkipBack className="size-4 fill-current" />
@@ -248,7 +226,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
           <button
             onClick={onTogglePlay}
             disabled={!currentTrack}
-            className="size-8 rounded-full bg-[#F4F4F5] text-black hover:bg-white flex items-center justify-center cursor-pointer transition-transform active:scale-95 disabled:opacity-40"
+            className="size-8 rounded-full bg-[#F5F5F5] text-black hover:bg-white flex items-center justify-center cursor-pointer transition-transform active:scale-95 disabled:opacity-30"
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isLoading ? (
@@ -262,7 +240,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
 
           <button
             onClick={onNext}
-            className="text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors cursor-pointer p-1"
+            className="text-[#9A9FA3] hover:text-[#F5F5F5] transition-colors cursor-pointer p-1"
             title="Next"
           >
             <SkipForward className="size-4 fill-current" />
@@ -271,7 +249,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
           <button
             onClick={onToggleRepeat}
             className={`transition-colors cursor-pointer p-1 ${
-              isRepeat ? 'text-[#2DD4BF]' : 'text-[#71717A] hover:text-[#F4F4F5]'
+              isRepeat ? 'text-[#10B981]' : 'text-[#9A9FA3] hover:text-[#F5F5F5]'
             }`}
             title="Repeat"
           >
@@ -280,7 +258,7 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
         </div>
 
         {/* Timeline Scrubber */}
-        <div className="w-full flex items-center gap-2.5 text-[11px] font-mono text-[#71717A]">
+        <div className="w-full flex items-center gap-2.5 text-[11px] font-mono text-[#9A9FA3]">
           <span className="w-8 text-right">
             {formatTime(currentTime)}
           </span>
@@ -298,22 +276,22 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
             {isScrubHovered && scrubHoverTime !== null && (
               <div
                 style={{ left: `${scrubHoverX}px` }}
-                className="absolute -top-7 -translate-x-1/2 px-2 py-0.5 rounded-md bg-[#0A0E13] border border-white/20 text-[10px] font-mono text-[#10B981] font-bold pointer-events-none shadow-2xl z-50 whitespace-nowrap"
+                className="absolute -top-6 -translate-x-1/2 px-1.5 py-0.5 rounded bg-[#101214] border border-white/[0.08] text-[9px] font-mono text-[#F5F5F5] pointer-events-none shadow-lg z-50 whitespace-nowrap"
               >
                 {formatTime(scrubHoverTime)}
               </div>
             )}
 
             <div
-              className="absolute top-0 left-0 h-full bg-white/[0.12] rounded-full pointer-events-none"
+              className="absolute top-0 left-0 h-full bg-white/[0.10] rounded-full pointer-events-none"
               style={{ width: `${bufferedPercent}%` }}
             />
             <div
-              className="absolute top-0 left-0 h-full rounded-full pointer-events-none bg-[#2DD4BF]"
+              className="absolute top-0 left-0 h-full rounded-full pointer-events-none bg-[#10B981]"
               style={{ width: `${progressPercent}%` }}
             />
             <div
-              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-2.5 rounded-full bg-white shadow pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-2.5 rounded-full bg-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
               style={{ left: `${progressPercent}%` }}
             />
             <input
@@ -332,13 +310,13 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
         </div>
       </div>
 
-      {/* 3. Right: Queue, Lyrics, Equalizer & Volume */}
+      {/* 3. Right: Queue, Lyrics, Volume & More */}
       <div className="flex items-center justify-end gap-3 w-[28%] min-w-[180px]">
         {/* Lyrics */}
         <button
           onClick={onOpenLyrics}
           className={`p-1.5 transition-colors cursor-pointer rounded ${
-            isLyricsActive ? 'text-[#2DD4BF]' : 'text-[#71717A] hover:text-[#F4F4F5]'
+            isLyricsActive ? 'text-[#10B981]' : 'text-[#9A9FA3] hover:text-[#F5F5F5]'
           }`}
           title="Lyrics"
         >
@@ -349,47 +327,43 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
         <button
           onClick={onToggleQueue}
           className={`p-1.5 transition-colors cursor-pointer rounded ${
-            isQueueActive ? 'text-[#2DD4BF]' : 'text-[#71717A] hover:text-[#F4F4F5]'
+            isQueueActive ? 'text-[#10B981]' : 'text-[#9A9FA3] hover:text-[#F5F5F5]'
           }`}
           title="Queue"
         >
           <ListMusic className="size-4" />
         </button>
 
-        {/* Equalizer */}
-        <button
-          onClick={onOpenEqualizer}
-          className="p-1.5 text-[#71717A] hover:text-[#F4F4F5] transition-colors cursor-pointer"
-          title="Equalizer"
-        >
-          <SlidersHorizontal className="size-3.5" />
-        </button>
-
         {/* Volume with Mouse Wheel Desktop Scrolling */}
         <div
-          className="flex items-center gap-2 group w-28"
+          className="flex items-center gap-2 group w-24 relative"
+          onWheel={handleVolumeWheel}
           onMouseEnter={() => setIsVolumeHovered(true)}
           onMouseLeave={() => setIsVolumeHovered(false)}
-          onWheel={handleVolumeWheel}
-          title="Scroll mouse wheel over slider to adjust volume"
         >
+          {isVolumeHovered && (
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-[#101214] border border-white/[0.08] text-[9px] font-mono text-[#F5F5F5] pointer-events-none shadow-lg z-50 whitespace-nowrap">
+              {Math.round(volume * 100)}%
+            </div>
+          )}
+
           <button
             onClick={handleToggleMute}
-            className="text-[#71717A] hover:text-[#F4F4F5] transition-colors cursor-pointer shrink-0"
+            className="text-[#9A9FA3] hover:text-[#F5F5F5] transition-colors cursor-pointer p-1 shrink-0"
             title={volume === 0 ? 'Unmute' : 'Mute'}
           >
             {volume === 0 ? (
-              <VolumeX className="size-3.5 text-zinc-400" />
+              <VolumeX className="size-4" />
             ) : volume < 0.5 ? (
-              <Volume1 className="size-3.5" />
+              <Volume1 className="size-4" />
             ) : (
-              <Volume2 className="size-3.5" />
+              <Volume2 className="size-4" />
             )}
           </button>
 
-          <div className="relative flex-1 h-1 bg-white/[0.08] hover:h-1.5 transition-all rounded-full cursor-pointer overflow-hidden">
+          <div className="relative flex-1 h-1 hover:h-1.5 bg-white/[0.08] rounded-full group cursor-pointer transition-all">
             <div
-              className="h-full rounded-full bg-[#2DD4BF]"
+              className="absolute top-0 left-0 h-full rounded-full bg-[#9A9FA3] group-hover:bg-[#10B981] transition-colors pointer-events-none"
               style={{ width: `${volume * 100}%` }}
             />
             <input
@@ -402,24 +376,79 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
           </div>
-
-          <span className="text-[10px] font-mono text-zinc-400 group-hover:text-[#10B981] w-7 text-right select-none font-medium">
-            {Math.round(volume * 100)}%
-          </span>
         </div>
 
-        {/* Expand / Collapse Now Playing View */}
-        <button
-          onClick={onExpandNowPlaying}
-          className="p-1 text-[#8E96A0] hover:text-white transition-colors cursor-pointer rounded ml-1"
-          title={isNowPlayingOpen ? 'Collapse Now Playing' : 'Expand Now Playing'}
-        >
-          {isNowPlayingOpen ? (
-            <ChevronDown className="size-4.5" />
-          ) : (
-            <ChevronUp className="size-4.5" />
+        {/* More Options Popover Menu */}
+        <div className="relative" ref={moreRef}>
+          <button
+            onClick={() => setIsMoreOpen(!isMoreOpen)}
+            className={`p-1.5 transition-colors cursor-pointer rounded ${
+              isMoreOpen ? 'text-[#F5F5F5] bg-white/[0.06]' : 'text-[#9A9FA3] hover:text-[#F5F5F5]'
+            }`}
+            title="More Options"
+          >
+            <MoreHorizontal className="size-4" />
+          </button>
+
+          {isMoreOpen && (
+            <div className="absolute bottom-full right-0 mb-2 w-48 rounded-lg bg-[#101214] border border-white/[0.06] shadow-xl py-1 text-xs text-[#F5F5F5] z-50">
+              <button
+                onClick={() => {
+                  setIsMoreOpen(false);
+                  onOpenEqualizer();
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+              >
+                <SlidersHorizontal className="size-3.5 text-[#9A9FA3]" />
+                <span>Equalizer (10-Band)</span>
+              </button>
+
+              {onToggleSpatialAudio && (
+                <button
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    onToggleSpatialAudio();
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Headphones className="size-3.5 text-[#9A9FA3]" />
+                    <span>Spatial Audio</span>
+                  </div>
+                  {isSpatialAudio && (
+                    <span className="text-[10px] font-mono text-[#10B981]">ON</span>
+                  )}
+                </button>
+              )}
+
+              {currentTrack && (
+                <button
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    onDownloadTrack(currentTrack);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+                >
+                  <Download className="size-3.5 text-[#9A9FA3]" />
+                  <span>Download Track</span>
+                </button>
+              )}
+
+              <div className="border-t border-white/[0.06] my-1" />
+
+              <button
+                onClick={() => {
+                  setIsMoreOpen(false);
+                  onToggleFullscreen();
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.04] transition-colors cursor-pointer text-left"
+              >
+                <Maximize2 className="size-3.5 text-[#9A9FA3]" />
+                <span>Fullscreen</span>
+              </button>
+            </div>
           )}
-        </button>
+        </div>
       </div>
     </footer>
   );

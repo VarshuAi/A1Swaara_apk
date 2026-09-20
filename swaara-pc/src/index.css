@@ -2,29 +2,30 @@
 
 @layer base {
   :root {
-    /* Swaara Calm Editorial Dark Palette */
-    --swaara-bg-base: #080809;
-    --swaara-bg-surface: #111113;
-    --swaara-bg-elevated: #18181B;
-    --swaara-bg-subtle: #202024;
+    /* Swaara Calm Desktop Music Player Palette */
+    --swaara-bg-deep: #070809;
+    --swaara-bg-base: #0B0D0F;
+    --swaara-bg-elevated: #101214;
+    --swaara-bg-subtle: #16181C;
 
     /* Single Restrained Accent */
     --swaara-accent: #10B981;
     --swaara-accent-hover: #059669;
-    --swaara-accent-subtle: rgba(16, 185, 129, 0.12);
 
-    --swaara-text-primary: #F4F4F5;
-    --swaara-text-secondary: #A1A1AA;
-    --swaara-text-muted: #71717A;
+    /* Typography */
+    --swaara-text-primary: #F5F5F5;
+    --swaara-text-secondary: #9A9FA3;
+    --swaara-text-muted: #6B7280;
 
-    --swaara-border: rgba(255, 255, 255, 0.07);
-    --swaara-border-hover: rgba(255, 255, 255, 0.14);
+    /* Borders */
+    --swaara-border: rgba(255, 255, 255, 0.06);
+    --swaara-border-hover: rgba(255, 255, 255, 0.12);
   }
 
   body {
-    background-color: var(--swaara-bg-base);
+    background-color: var(--swaara-bg-deep);
     color: var(--swaara-text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     user-select: none;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
@@ -41,11 +42,11 @@
   -webkit-app-region: no-drag;
 }
 
-/* Restrained Surface Utilities */
+/* Clean Desktop Surfaces */
 .surface-card {
-  background-color: var(--swaara-bg-surface);
+  background-color: var(--swaara-bg-base);
   border: 1px solid var(--swaara-border);
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
 .surface-card:hover {
@@ -56,12 +57,12 @@
 /* Minimal Discrete Scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -69,12 +70,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.10);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.20);
 }
 
 /* Range input styling */
@@ -84,16 +85,10 @@ input[type="range"] {
 
 /* Subtle Playing Animation */
 @keyframes subtleBar {
-  0%, 100% {
-    height: 4px;
-  }
-  50% {
-    height: 14px;
-  }
+  0%, 100% { height: 4px; }
+  50% { height: 13px; }
 }
 
-.animate-bar-1 { animation: subtleBar 0.8s ease-in-out infinite; }
-.animate-bar-2 { animation: subtleBar 0.6s ease-in-out infinite 0.15s; }
-.animate-bar-3 { animation: subtleBar 1.0s ease-in-out infinite 0.3s; }
-.animate-bar-4 { animation: subtleBar 0.7s ease-in-out infinite 0.45s; }
-
+.animate-bar-1 { animation: subtleBar 0.9s ease-in-out infinite; }
+.animate-bar-2 { animation: subtleBar 0.7s ease-in-out infinite 0.15s; }
+.animate-bar-3 { animation: subtleBar 1.1s ease-in-out infinite 0.3s; }

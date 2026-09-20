@@ -62,7 +62,7 @@ async function packagePC() {
       icon: iconIco,
       'version-string': {
         ProductName: 'A1 Swaara',
-        FileDescription: 'A1 Swaara — Desktop Music Player & Studio',
+        FileDescription: 'A1 Swaara — Desktop Music Player',
         CompanyName: 'VarshuAi',
         LegalCopyright: 'Copyright © 2026 VarshuAi',
         OriginalFilename: 'A1_Swaara.exe',
@@ -84,7 +84,7 @@ async function packagePC() {
   const appPkg = {
     name: 'a1swaara-pc',
     version: '1.0.0',
-    description: 'A1 Swaara Desktop Music Player & Studio',
+    description: 'A1 Swaara Desktop Music Player',
     main: 'electron/main.cjs'
   };
   fs.writeFileSync(path.join(tempAppDir, 'package.json'), JSON.stringify(appPkg, null, 2));

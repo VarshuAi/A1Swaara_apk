@@ -45,15 +45,15 @@ function createWindow() {
   const windowIcon = fs.existsSync(iconIco) ? iconIco : iconPng;
 
   mainWindow = new BrowserWindow({
-    title: 'A1 Swaara — Desktop Studio',
+    title: 'A1 Swaara',
     icon: windowIcon,
     width: normalBounds.width,
     height: normalBounds.height,
     minWidth: 980,
     minHeight: 650,
-    frame: false, // Obsidian frameless styling
+    frame: false,
     titleBarStyle: 'hidden',
-    backgroundColor: '#070B0E',
+    backgroundColor: '#070809',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
@@ -108,7 +108,7 @@ function createTray() {
 
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: 'A1 Swaara — Desktop Studio',
+        label: 'A1 Swaara',
         enabled: false,
       },
       { type: 'separator' },

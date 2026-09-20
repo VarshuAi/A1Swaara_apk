@@ -21,7 +21,7 @@ export function formatListenerCount(rawText?: string): string {
 }
 
 export function cleanArtistName(rawArtist?: string): string {
-  if (!rawArtist) return 'Studio Artist';
+  if (!rawArtist) return 'Unknown Artist';
   let cleaned = rawArtist
     .replace(/ - Topic$/i, '')
     .replace(/\s+VEVO$/i, '')
@@ -48,7 +48,7 @@ export function cleanArtistName(rawArtist?: string): string {
     }
   }
 
-  return cleaned || 'Studio Artist';
+  return cleaned || 'Unknown Artist';
 }
 
 export function cleanTrackTitle(title: string): { cleanTitle: string; artistGuess?: string; albumGuess?: string } {
@@ -139,7 +139,7 @@ export async function searchMusic(query: string): Promise<Track[]> {
       if (durationSecs > 480 || (durationSecs > 0 && durationSecs < 40)) continue;
 
       const { cleanTitle, artistGuess, albumGuess } = cleanTrackTitle(item.title);
-      const artist = artistGuess || cleanArtistName(item.uploader?.name) || 'Studio Artist';
+      const artist = artistGuess || cleanArtistName(item.uploader?.name) || 'Unknown Artist';
 
       const rawThumb = item.thumbnails?.[item.thumbnails.length - 1]?.url ||
         `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`;

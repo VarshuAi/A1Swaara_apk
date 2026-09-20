@@ -8,8 +8,6 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
-  ShieldCheck,
 } from 'lucide-react';
 import { Track } from '../types/music';
 
@@ -26,8 +24,6 @@ interface TitleBarProps {
 }
 
 export const TitleBar: React.FC<TitleBarProps> = ({
-  currentTrack,
-  isPlaying,
   onToggleMiniPlayer,
   isMiniPlayer = false,
   onOpenSearch,
@@ -53,91 +49,87 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   const handleClose = () => window.electronAPI?.close();
 
   return (
-    <header className="h-11 w-full bg-[#070B0E] border-b border-white/[0.05] flex items-center justify-between px-4 select-none drag-region z-50 text-xs text-[#8E8E93]">
-      {/* Left: Window History Navigation Buttons */}
-      <div className="flex items-center gap-2 no-drag">
+    <header className="h-10 w-full bg-[#070809] border-b border-white/[0.06] flex items-center justify-between px-3 select-none drag-region z-50 text-xs text-[#9A9FA3]">
+      {/* Left: History Navigation */}
+      <div className="flex items-center gap-1 no-drag">
         <button
           onClick={onNavigateBack || (() => window.history.back())}
           disabled={canGoBack === false}
-          className={`size-7 rounded-md bg-white/[0.04] flex items-center justify-center transition-colors cursor-pointer ${
-            canGoBack === false ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/[0.08] hover:text-[#F4F4F5]'
+          className={`size-7 rounded flex items-center justify-center transition-colors cursor-pointer ${
+            canGoBack === false
+              ? 'opacity-25 cursor-not-allowed'
+              : 'hover:bg-white/[0.04] text-[#9A9FA3] hover:text-[#F5F5F5]'
           }`}
-          title="Go back"
+          title="Back"
         >
           <ChevronLeft className="size-4" />
         </button>
         <button
           onClick={onNavigateForward || (() => window.history.forward())}
           disabled={canGoForward === false}
-          className={`size-7 rounded-md bg-white/[0.04] flex items-center justify-center transition-colors cursor-pointer ${
-            canGoForward === false ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/[0.08] hover:text-[#F4F4F5]'
+          className={`size-7 rounded flex items-center justify-center transition-colors cursor-pointer ${
+            canGoForward === false
+              ? 'opacity-25 cursor-not-allowed'
+              : 'hover:bg-white/[0.04] text-[#9A9FA3] hover:text-[#F5F5F5]'
           }`}
-          title="Go forward"
+          title="Forward"
         >
           <ChevronRight className="size-4" />
         </button>
       </div>
 
-      {/* Center: Clean Search Trigger */}
+      {/* Center: Search Bar */}
       <div className="flex-1 max-w-sm mx-4 flex items-center justify-center no-drag">
         <button
           onClick={onOpenSearch}
-          className="w-full h-8 px-3.5 rounded-full bg-[#0E141B] hover:bg-[#131B24] border border-white/[0.08] flex items-center justify-between text-[#8E96A0] hover:text-white transition-colors cursor-pointer group"
+          className="w-full h-7 px-3 rounded-md bg-[#0B0D0F] hover:bg-[#101214] border border-white/[0.06] hover:border-white/[0.12] flex items-center justify-between text-[#9A9FA3] hover:text-[#F5F5F5] transition-colors cursor-pointer group"
         >
-          <div className="flex items-center gap-2.5 truncate">
-            <Search className="size-3.5 text-[#8E96A0] group-hover:text-[#2DD4BF] shrink-0 transition-colors" />
-            <span className="text-xs text-[#8E96A0] group-hover:text-white truncate font-medium">
+          <div className="flex items-center gap-2 truncate">
+            <Search className="size-3.5 text-[#9A9FA3] shrink-0" />
+            <span className="text-xs text-[#9A9FA3] group-hover:text-[#F5F5F5] truncate font-normal">
               Search songs, artists, albums...
             </span>
           </div>
-          <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/[0.08] font-mono text-[9px] text-[#8E96A0]">
+          <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.04] font-mono text-[9px] text-[#9A9FA3]">
             Ctrl K
           </kbd>
         </button>
       </div>
 
-      {/* Right: Window Controls & Mini Player */}
-      <div className="flex items-center gap-1 no-drag">
-        {/* Lossless DSP Engine Pill */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[#10B981] font-mono text-[10px] font-bold mr-1 shadow-[0_0_8px_rgba(16,185,129,0.15)]">
-          <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse" />
-          <span>320K HI-FI</span>
-        </div>
-
-        {/* Mini Player Toggle */}
+      {/* Right: Window Controls */}
+      <div className="flex items-center gap-0.5 no-drag">
+        {/* Mini Player */}
         <button
           onClick={onToggleMiniPlayer}
           title={isMiniPlayer ? 'Exit Mini Player' : 'Mini Player'}
-          className="size-7 rounded-md hover:bg-white/[0.08] hover:text-[#F4F4F5] flex items-center justify-center text-[#8E8E93] transition-colors cursor-pointer"
+          className="size-7 rounded hover:bg-white/[0.04] hover:text-[#F5F5F5] flex items-center justify-center text-[#9A9FA3] transition-colors cursor-pointer"
         >
           <Minimize2 className="size-3.5" />
         </button>
 
-        {/* Electron Window Management Buttons */}
-        {isElectron ? (
-          <div className="flex items-center gap-0.5 ml-2">
+        {isElectron && (
+          <div className="flex items-center gap-0.5 ml-1">
             <button
               onClick={handleMinimize}
-              className="size-8 rounded hover:bg-white/10 text-[#B3B3B3] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="size-7 rounded hover:bg-white/[0.04] text-[#9A9FA3] hover:text-[#F5F5F5] flex items-center justify-center transition-colors cursor-pointer"
+              title="Minimize"
             >
               <Minus className="size-3.5" />
             </button>
             <button
               onClick={handleMaximize}
-              className="size-8 rounded hover:bg-white/10 text-[#B3B3B3] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="size-7 rounded hover:bg-white/[0.04] text-[#9A9FA3] hover:text-[#F5F5F5] flex items-center justify-center transition-colors cursor-pointer"
+              title={isMaximized ? 'Restore' : 'Maximize'}
             >
               {isMaximized ? <Copy className="size-3" /> : <Square className="size-3" />}
             </button>
             <button
               onClick={handleClose}
-              className="size-8 rounded hover:bg-[#E81123] text-[#B3B3B3] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="size-7 rounded hover:bg-[#E81123] text-[#9A9FA3] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              title="Close"
             >
               <X className="size-3.5" />
             </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#181818] text-[#B3B3B3] text-[10px] font-mono">
-            <span>WEB</span>
           </div>
         )}
       </div>

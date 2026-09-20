@@ -86,35 +86,35 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       <div
         ref={menuRef}
         style={{ left: `${Math.max(8, left)}px`, top: `${Math.max(8, top)}px` }}
-        className="absolute w-[220px] bg-[#0E1318]/95 backdrop-blur-2xl border border-white/[0.1] rounded-xl shadow-2xl p-1.5 text-xs text-[#CCCCCC] select-none font-sans animate-scaleIn origin-top-left divide-y divide-white/[0.05]"
+        className="absolute w-[200px] bg-[#101214] border border-white/[0.06] rounded-lg shadow-2xl p-1 text-xs text-[#F5F5F5] select-none font-sans animate-scaleIn origin-top-left divide-y divide-white/[0.04]"
       >
         {/* Track Snapshot Header */}
-        <div className="flex items-center gap-2.5 p-2 mb-1">
+        <div className="flex items-center gap-2 p-1.5 mb-0.5">
           <img
             src={track.artwork}
             alt={track.title}
-            className="size-8 rounded-md object-cover shrink-0 border border-white/[0.08]"
+            className="size-7 rounded object-cover shrink-0 bg-[#0B0D0F]"
           />
           <div className="truncate flex-1">
-            <p className="font-semibold text-white truncate text-[11px] leading-tight">
+            <p className="font-medium text-[#F5F5F5] truncate text-[11px] leading-tight">
               {track.title}
             </p>
-            <p className="text-[10px] text-[#8E8E93] truncate mt-0.5">
+            <p className="text-[10px] text-[#9A9FA3] truncate mt-0.5">
               {track.artist}
             </p>
           </div>
         </div>
 
         {/* Action Group 1: Playback */}
-        <div className="py-1">
+        <div className="py-0.5">
           <button
             onClick={() => {
               onPlayNow(track);
               onClose();
             }}
-            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-[#10B981] hover:text-black transition-colors cursor-pointer text-left font-medium"
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/[0.04] transition-colors cursor-pointer text-left text-[#F5F5F5]"
           >
-            <Play className="size-3.5 fill-current" />
+            <Play className="size-3.5 fill-current text-[#10B981]" />
             <span>Play Now</span>
           </button>
 
@@ -123,9 +123,9 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               onPlayNext(track);
               onClose();
             }}
-            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.08] hover:text-white transition-colors cursor-pointer text-left"
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/[0.04] transition-colors cursor-pointer text-left text-[#9A9FA3] hover:text-[#F5F5F5]"
           >
-            <ListPlus className="size-3.5 text-[#10B981]" />
+            <ListPlus className="size-3.5" />
             <span>Play Next</span>
           </button>
 
@@ -134,41 +134,28 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               onAddToQueue(track);
               onClose();
             }}
-            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.08] hover:text-white transition-colors cursor-pointer text-left"
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/[0.04] transition-colors cursor-pointer text-left text-[#9A9FA3] hover:text-[#F5F5F5]"
           >
-            <ListPlus className="size-3.5 text-zinc-400" />
+            <ListPlus className="size-3.5" />
             <span>Add to Queue</span>
           </button>
-
-          {onStartRadio && (
-            <button
-              onClick={() => {
-                onStartRadio(track);
-                onClose();
-              }}
-              className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.08] hover:text-white transition-colors cursor-pointer text-left"
-            >
-              <Radio className="size-3.5 text-[#10B981]" />
-              <span>Start Song Radio</span>
-            </button>
-          )}
         </div>
 
         {/* Action Group 2: Library & Downloads */}
-        <div className="py-1">
+        <div className="py-0.5">
           <button
             onClick={() => {
               onToggleLike(track);
               onClose();
             }}
-            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.08] hover:text-white transition-colors cursor-pointer text-left"
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/[0.04] transition-colors cursor-pointer text-left text-[#9A9FA3] hover:text-[#F5F5F5]"
           >
             <Heart
               className={`size-3.5 ${
-                isLiked ? 'text-[#10B981] fill-[#10B981]' : 'text-zinc-400'
+                isLiked ? 'text-[#10B981] fill-[#10B981]' : ''
               }`}
             />
-            <span>{isLiked ? 'Remove from Liked' : 'Save to Liked Songs'}</span>
+            <span>{isLiked ? 'Remove Like' : 'Save to Liked'}</span>
           </button>
 
           <button
@@ -176,10 +163,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               onDownload(track);
               onClose();
             }}
-            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.08] hover:text-white transition-colors cursor-pointer text-left"
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/[0.04] transition-colors cursor-pointer text-left text-[#9A9FA3] hover:text-[#F5F5F5]"
           >
-            <Download className="size-3.5 text-[#10B981]" />
-            <span>Download Lossless (320k)</span>
+            <Download className="size-3.5" />
+            <span>Download</span>
           </button>
         </div>
 

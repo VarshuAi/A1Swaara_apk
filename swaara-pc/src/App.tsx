@@ -151,15 +151,15 @@ export function App() {
     const newTracks: Track[] = audioFiles.map((file, idx) => {
       const cleanName = file.name.replace(/\.[^/.]+$/, '');
       const parts = cleanName.split(' - ');
-      const artist = parts.length > 1 ? parts[0].trim() : 'Studio Master';
-      const title = parts.length > 1 ? parts.slice(1).join(' - ').trim() : cleanName;
+      const artist = parts.length > 1 ? parts[0].trim() : 'Unknown Artist';
+      const title = (parts.length > 1 ? parts.slice(1).join(' - ') : parts[0]).replace(/\.[^/.]+$/, '');
       const streamUrl = URL.createObjectURL(file);
 
       return {
-        id: `local-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
-        title,
+        id: `local-${Date.now()}-${idx}`,
+        title: title || file.name,
         artist,
-        album: 'PC Local Studio',
+        album: 'Local Audio',
         artwork: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&h=300&fit=crop',
         duration: 0,
         streamUrl,
@@ -198,7 +198,7 @@ export function App() {
         storage.addToHistory(track);
         setHistorySongs(storage.getHistory());
         setLyrics({
-          text: 'Studio Offline Master Audio\nRouted through Swaara 10-band EQ & Spatial 3D DSP Graph',
+          text: 'Offline Local Audio\nRouted through Swaara Equalizer & Audio Engine',
           synced: [],
         });
       } catch (err) {
@@ -645,7 +645,7 @@ export function App() {
       />
 
       {/* Main Layout: Slim Navigation + Continuous Content */}
-      <div className="flex-1 flex overflow-hidden relative bg-[#070B0E]">
+      <div className="flex-1 flex overflow-hidden relative bg-[#070809]">
         {/* Navigation Sidebar */}
         <Sidebar
           activeTab={activeTab}
@@ -654,15 +654,12 @@ export function App() {
             setIsNowPlayingOpen(false);
           }}
           onOpenEqualizer={() => setIsEqualizerOpen(true)}
-          onOpenStoryCreator={() => setIsStoryCreatorOpen(true)}
           likedCount={likedSongs.length}
           downloadCount={downloadedSongs.length}
-          onOpenNowPlaying={() => setIsNowPlayingOpen(true)}
-          hasTrack={!!currentTrack}
         />
 
         {/* Continuous Center Viewport */}
-        <main className="flex-1 h-full overflow-hidden flex flex-col bg-[#070B0E] relative border-l border-white/[0.05]">
+        <main className="flex-1 h-full overflow-hidden flex flex-col bg-[#070809] relative">
           {isNowPlayingOpen && currentTrack ? (
             <NowPlayingView
               track={currentTrack}

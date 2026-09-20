@@ -1,7 +1,7 @@
 {
   "name": "a1swaara-pc",
   "version": "1.0.0",
-  "description": "A1 Swaara Desktop Music Player & Studio for Windows PC",
+  "description": "A1 Swaara Desktop Music Player for Windows PC",
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
