@@ -7,6 +7,18 @@ import { CommentsExtractor } from './newpipe/extractors/comments';
 import { ChannelExtractor } from './newpipe/extractors/channel';
 import { parseDurationToSeconds } from './newpipe/utils/helper';
 
+export function formatListenerCount(rawText?: string): string {
+  if (!rawText) return 'Verified Artist';
+  // Strip "· X videos", "• X videos", etc.
+  const base = rawText.split('•')[0].split('·')[0].trim();
+  const replaced = base
+    .replace(/subscribers?/gi, 'Monthly Listeners')
+    .replace(/subscriber/gi, 'Listener')
+    .replace(/channel/gi, '')
+    .trim();
+  return replaced || 'Verified Artist';
+}
+
 export function cleanArtistName(rawArtist?: string): string {
   if (!rawArtist) return 'Studio Artist';
   let cleaned = rawArtist
@@ -15,6 +27,7 @@ export function cleanArtistName(rawArtist?: string): string {
     .replace(/\s+Official(?:\s+Channel)?$/i, '')
     .replace(/\s+Recordings$/i, '')
     .replace(/\s+Music$/i, '')
+    .replace(/\s+(?:YouTube|YT|Channel)$/i, '')
     .trim();
 
   // If contains comma or ampersand, clean each artist part
@@ -23,6 +36,7 @@ export function cleanArtistName(rawArtist?: string): string {
       p
         .replace(/ - Topic$/i, '')
         .replace(/\s+VEVO$/i, '')
+        .replace(/\s+(?:YouTube|YT|Channel)$/i, '')
         .trim()
     ).filter(Boolean);
 
@@ -54,8 +68,9 @@ export function cleanTrackTitle(title: string): { cleanTitle: string; artistGues
   cleaned = cleaned
     .replace(/[\(\[]\s*(?:Official\s*(?:Music\s*)?(?:Video|Audio|Song|Visualizer|Lyric\s*Video|Lyrical|Teaser|Trailer|Promo)?|Full\s*(?:Song|Video|Audio)?|Lyric\s*Video|Lyrical(?:\s*Video)?|Music\s*Video|Video\s*Song|Audio\s*Song|4K(?:\s*UHD)?|8K|HD|HQ|1080p|Visualizer|Teaser|Trailer|Promo|Original\s*(?:Audio|Song|Motion\s*Picture\s*Soundtrack)|Performance\s*Video|Live\s*Performance|Studio\s*Version|Slowed(?:\s*\+\s*Reverb)?|Reverb|Bass\s*Boosted|Remastered(?:\s*\d{4})?).*?[\)\]]/gi, '')
     // 3. Strip trailing record label or channel promo pipes
-    .replace(/\|\s*(?:T-Series|Zee Music(?:\s*Company)?|Sony Music(?:\s*(?:India|South))?|Aditya Music|Tips Official|Saregama(?:\s*Music)?|Speed Records|YRF|Lahari Music|Anand Audio|YouTube Music|NewPipe|Think Music(?:\s*India)?|SVF|Junglee Music|Eros Now|Times Music|Muzik247|Divo|Speed Punjabi|Geetha Arts|Star Maa|Star Suvarna|Zee Kannada|Colors Kannada).*?$/gi, '')
+    .replace(/\|\s*(?:T-Series|Zee Music(?:\s*Company)?|Sony Music(?:\s*(?:India|South))?|Aditya Music|Tips Official|Saregama(?:\s*Music)?|Speed Records|YRF|Lahari Music|Anand Audio|YouTube Music|YouTube|YT Music|YT|NewPipe|Think Music(?:\s*India)?|SVF|Junglee Music|Eros Now|Times Music|Muzik247|Divo|Speed Punjabi|Geetha Arts|Star Maa|Star Suvarna|Zee Kannada|Colors Kannada).*?$/gi, '')
     .replace(/\|\s*(?:Official|Full|Video|Audio|Lyrical|Lyrical Video|HD|4K|8K).*?$/gi, '')
+    .replace(/\b(?:YouTube\s*Music|YouTube|YT\s*Music)\b/gi, '')
     .replace(/\/\/\s*.*$/gi, '');
 
   // 4. Strip multi-pipe Bollywood / Tollywood / Sandalwood cast dumps in title (e.g. "| Ranbir Kapoor | Alia Bhatt | Pritam")
@@ -303,9 +318,12 @@ export async function fetchSongInsights(trackId: string): Promise<SongInsights> 
 export async function fetchArtistProfile(channelIdOrHandle: string) {
   try {
     const channelInfo = await ChannelExtractor.extract(channelIdOrHandle);
+    if (channelInfo && channelInfo.subscriberCountText) {
+      channelInfo.subscriberCountText = formatListenerCount(channelInfo.subscriberCountText);
+    }
     return channelInfo;
   } catch (err) {
-    console.error('Failed to extract artist channel:', err);
+    console.error('Failed to extract artist profile:', err);
     return null;
   }
 }
@@ -391,7 +409,7 @@ export async function fetchArtistFullDetails(artistNameOrChannelId: string): Pro
     name: artistName || artistNameOrChannelId,
     avatarUrl: finalAvatar,
     bannerUrl: ytmDetails?.bannerUrl,
-    subscriberCountText: ytmDetails?.subscriberCountText || 'Artist',
+    subscriberCountText: formatListenerCount(ytmDetails?.subscriberCountText),
     verified: true,
     description: ytmDetails?.description,
     topTracks: topTracks.slice(0, 20),

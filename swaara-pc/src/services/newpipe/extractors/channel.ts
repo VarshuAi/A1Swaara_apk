@@ -71,9 +71,13 @@ export class ChannelExtractor {
     const id = metadata.externalId || data.responseContext?.serviceTrackingParams?.[0]?.params?.find((p: any) => p.key === 'browse_id')?.value || extracted.value;
 
     // Sub counts
-    const subscriberCountText =
+    const rawSubCount =
       getText(header?.subscriberCountText) ||
       getText(data.header?.pageHeaderRenderer?.content?.pageHeaderViewModel?.metadata?.contentMetadataViewModel?.metadataRows?.[1]?.metadataParts?.[0]?.text);
+
+    const subscriberCountText = rawSubCount
+      ? rawSubCount.split('•')[0].split('·')[0].replace(/subscribers?/gi, 'Monthly Listeners').trim()
+      : undefined;
 
     const avatarUrl =
       header?.avatar?.thumbnails?.[0]?.url ||

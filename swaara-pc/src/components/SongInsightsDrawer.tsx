@@ -213,7 +213,9 @@ export const SongInsightsDrawer: React.FC<SongInsightsDrawerProps> = ({
                         <CheckCircle2 className="size-3.5 text-[#1ED760] shrink-0" />
                       </h4>
                       <p className="text-xs text-[#B3B3B3] mt-0.5">
-                        {channelDetails?.subscriberCountText ? `${channelDetails.subscriberCountText}` : 'Verified Artist Channel'}
+                        {channelDetails?.subscriberCountText
+                          ? channelDetails.subscriberCountText.replace(/subscribers?/gi, 'Monthly Listeners').replace(/channel/gi, '').trim()
+                          : 'Verified Artist'}
                       </p>
                     </div>
                   </div>
@@ -295,7 +297,7 @@ export const SongInsightsDrawer: React.FC<SongInsightsDrawerProps> = ({
                 ) : (
                   <div className="text-center py-16 text-[#A7A7A7] space-y-2">
                     <MessageSquare className="size-8 mx-auto text-[#4D4D4D]" />
-                    <p className="text-xs">No comments available for this stream</p>
+                    <p className="text-xs">No listener discussions yet</p>
                   </div>
                 )}
               </div>

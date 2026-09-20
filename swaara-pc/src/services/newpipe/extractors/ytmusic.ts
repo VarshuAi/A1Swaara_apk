@@ -331,7 +331,10 @@ export class YTMusicExtractor {
               if (!browseId) continue;
 
               const col1Runs = flexCols[1]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs;
-              const subText = col1Runs?.map((r: any) => r.text).join('').trim();
+              const rawSubText = col1Runs?.map((r: any) => r.text).join('').trim();
+              const subText = rawSubText
+                ? rawSubText.split('•')[0].split('·')[0].replace(/subscribers?/gi, 'Monthly Listeners').trim()
+                : 'Artist';
 
               const thumbs = item.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
               const rawThumb = thumbs[thumbs.length - 1]?.url;
@@ -342,7 +345,7 @@ export class YTMusicExtractor {
                 name,
                 browseId,
                 avatarUrl,
-                subscribers: subText,
+                subscribers: subText || 'Artist',
               });
             }
           }
@@ -381,10 +384,16 @@ export class YTMusicExtractor {
         data?.header?.musicHeaderRenderer;
 
       const name = header?.title?.runs?.[0]?.text || 'Artist';
-      const subText =
+      const rawSub =
         header?.subscriptionButton?.subscribeButtonRenderer?.subscriberCountText?.runs?.[0]?.text ||
         header?.subtitle?.runs?.map((r: any) => r.text).join('') ||
         'Artist';
+      const subText = rawSub
+        .split('•')[0]
+        .split('·')[0]
+        .replace(/subscribers?/gi, 'Monthly Listeners')
+        .replace(/channel/gi, '')
+        .trim() || 'Verified Artist';
 
       const bannerThumbs =
         header?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails ||
@@ -484,7 +493,13 @@ export class YTMusicExtractor {
                 const r2r = item.musicTwoRowItemRenderer;
                 if (!r2r) continue;
                 const itemTitle = r2r.title?.runs?.[0]?.text || '';
-                const subs = r2r.subtitle?.runs?.map((r: any) => r.text).join('');
+                const rawSubs = r2r.subtitle?.runs?.map((r: any) => r.text).join('') || '';
+                const subs = rawSubs
+                  .split('•')[0]
+                  .split('·')[0]
+                  .replace(/subscribers?/gi, 'Monthly Listeners')
+                  .replace(/channel/gi, '')
+                  .trim() || 'Artist';
                 const thumbs = r2r.thumbnailRenderer?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
                 const rawArt = thumbs[thumbs.length - 1]?.url;
                 const art = this.getHighResImage(rawArt, 600, 600) || rawArt || '';

@@ -229,7 +229,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
                       {art.name}
                     </h4>
                     <p className="text-[11px] text-[#8E8E93] truncate w-full mt-0.5">
-                      {art.subscribers || 'Artist'}
+                      {art.subscribers?.replace(/subscribers?/gi, 'Monthly Listeners') || 'Artist'}
                     </p>
                   </div>
                 ))}

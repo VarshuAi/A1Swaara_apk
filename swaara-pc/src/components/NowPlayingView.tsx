@@ -732,12 +732,12 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-white/[0.04]">
                     <span>Stream Engine</span>
-                    <span className="text-white font-mono">YouTube Music WEB_REMIX</span>
+                    <span className="text-white font-mono">Swaara Lossless DSP Graph</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-white/[0.04]">
                     <span>Track ID</span>
                     <span className="text-white font-mono text-[11px] truncate max-w-[140px]">
-                      {track.id}
+                      SW-{track.id.replace(/[^a-zA-Z0-9_-]/g, '')}
                     </span>
                   </div>
                 </div>

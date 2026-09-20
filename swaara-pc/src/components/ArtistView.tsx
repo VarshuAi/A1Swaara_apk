@@ -178,7 +178,7 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
             </h1>
 
             <p className="text-xs sm:text-sm text-[#8E8E93] flex items-center gap-2">
-              <span>{artist.subscriberCountText || 'Artist'}</span>
+              <span>{artist.subscriberCountText?.replace(/subscribers?/gi, 'Monthly Listeners') || 'Verified Artist'}</span>
             </p>
           </div>
         </div>
@@ -432,7 +432,7 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
                     {sim.name}
                   </h4>
                   <p className="text-[11px] text-[#8E8E93] truncate w-full mt-0.5">
-                    {sim.subscribers || 'Artist'}
+                    {sim.subscribers?.replace(/subscribers?/gi, 'Monthly Listeners') || 'Artist'}
                   </p>
                 </div>
               ))}
@@ -459,7 +459,7 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
 
             <div className="absolute bottom-5 left-5 right-5 space-y-1.5 text-white">
               <span className="text-xs font-semibold text-[#10B981] block">
-                {artist.subscriberCountText || 'Artist'}
+                {artist.subscriberCountText?.replace(/subscribers?/gi, 'Monthly Listeners') || 'Verified Artist'}
               </span>
 
               {artist.description ? (
@@ -492,7 +492,7 @@ export const ArtistView: React.FC<ArtistViewProps> = ({
 
             <div className="space-y-3 text-xs text-[#8E8E93] max-h-80 overflow-y-auto pr-2 scrollbar-thin">
               <p className="text-[#10B981] font-medium">
-                {artist.subscriberCountText || 'Artist'}
+                {artist.subscriberCountText?.replace(/subscribers?/gi, 'Monthly Listeners') || 'Verified Artist'}
               </p>
               <p className="leading-relaxed whitespace-pre-line">
                 {artist.description || 'No biography available.'}
