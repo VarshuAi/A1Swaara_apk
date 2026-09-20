@@ -6,6 +6,7 @@ import { TranscriptExtractor } from './newpipe/services/youtube/transcript';
 import { CommentsExtractor } from './newpipe/extractors/comments';
 import { ChannelExtractor } from './newpipe/extractors/channel';
 import { parseDurationToSeconds } from './newpipe/utils/helper';
+import { getLyricsForTrack } from './lyricsService';
 
 export function formatListenerCount(rawText?: string): string {
   if (!rawText) return 'Verified Artist';
@@ -221,24 +222,21 @@ export async function resolveTrackStream(track: Track): Promise<Track> {
   return track;
 }
 
-// Fetch YouTube Transcripts as Synchronized Karaoke Lyrics
-export async function fetchLyrics(trackId: string): Promise<{ text: string; synced: SyncedLyricLine[] }> {
-  try {
-    const segments = await TranscriptExtractor.getTranscript(trackId);
-    if (segments && segments.length > 0) {
-      const synced: SyncedLyricLine[] = segments.map((seg) => ({
-        time: seg.startMs / 1000,
-        text: seg.text,
-      }));
-
-      const text = segments.map((s) => s.text).join('\n');
-      return { text, synced };
-    }
-  } catch (err) {
-    console.warn('No transcript found for video:', trackId);
+// Multi-Tiered Synchronized Karaoke & Plain Lyrics Fetcher
+export async function fetchLyrics(
+  trackOrId: Track | string,
+  artistName?: string,
+  durationSecs?: number
+): Promise<{ text: string; synced: SyncedLyricLine[]; isSynced?: boolean; provider?: string }> {
+  if (typeof trackOrId === 'string') {
+    return getLyricsForTrack({
+      id: trackOrId,
+      title: trackOrId,
+      artist: artistName || '',
+      duration: durationSecs,
+    });
   }
-
-  return { text: '', synced: [] };
+  return getLyricsForTrack(trackOrId);
 }
 
 // Fetch Comprehensive Song Insights: Metadata, Views, Top Listener Comments & Recommended Tracks

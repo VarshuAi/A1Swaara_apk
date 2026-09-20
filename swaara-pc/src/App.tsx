@@ -61,8 +61,14 @@ export function App() {
   const [downloadedSongs, setDownloadedSongs] = useState<Track[]>(storage.getDownloads());
   const [localTracks, setLocalTracks] = useState<Track[]>([]);
   const [activeEqPreset, setActiveEqPreset] = useState<string>(storage.getSavedEqPreset());
-  const [lyrics, setLyrics] = useState<{ text: string; synced: SyncedLyricLine[] }>({ text: '', synced: [] });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [lyrics, setLyrics] = useState<{
+    text: string;
+    synced: SyncedLyricLine[];
+    isSynced?: boolean;
+    provider?: string;
+    isLoading?: boolean;
+  }>({ text: '', synced: [], isLoading: false });
   const [isDownloading, setIsDownloading] = useState(false);
   const [contextMenu, setContextMenu] = useState<{
     position: { x: number; y: number };
@@ -202,6 +208,8 @@ export function App() {
       return;
     }
 
+    setLyrics({ text: '', synced: [], isLoading: true });
+
     const isElectron = typeof window !== 'undefined' && Boolean((window as any).electronAPI?.isElectron);
 
     if (isElectron) {
@@ -213,7 +221,7 @@ export function App() {
 
         storage.addToHistory(resolved);
         setHistorySongs(storage.getHistory());
-        fetchLyrics(resolved.id).then((lyr) => setLyrics(lyr));
+        fetchLyrics(resolved).then((lyr) => setLyrics({ ...lyr, isLoading: false }));
       } catch (err) {
         console.error('Track playback failure:', err);
         await audioEngine.playTrack(track);
@@ -226,7 +234,7 @@ export function App() {
         setIsLoading(false);
         storage.addToHistory(track);
         setHistorySongs(storage.getHistory());
-        fetchLyrics(track.id).then((lyr) => setLyrics(lyr));
+        fetchLyrics(track).then((lyr) => setLyrics({ ...lyr, isLoading: false }));
       } catch (err) {
         console.error('Web playback failure:', err);
         setIsLoading(false);

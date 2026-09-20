@@ -25,6 +25,9 @@ import {
   Loader2,
   Disc3,
   Radio,
+  Copy,
+  Check,
+  FileText,
 } from 'lucide-react';
 import { Track, SyncedLyricLine, SleepTimerOption } from '../types/music';
 import { audioEngine } from '../services/audioEngine';
@@ -57,7 +60,13 @@ interface NowPlayingViewProps {
   onDownload: () => void;
   onOpenEqualizer: () => void;
   onOpenStoryCreator: () => void;
-  lyrics: { text: string; synced: SyncedLyricLine[] };
+  lyrics: {
+    text: string;
+    synced: SyncedLyricLine[];
+    isSynced?: boolean;
+    provider?: string;
+    isLoading?: boolean;
+  };
   onSeek: (time: number) => void;
   isSpatialAudio?: boolean;
   onToggleSpatialAudio?: () => void;
@@ -114,6 +123,8 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
   isAutoDJ = true,
 }) => {
   const [rightTab, setRightTab] = useState<'queue' | 'lyrics' | 'info'>('queue');
+  const [lyricsViewMode, setLyricsViewMode] = useState<'karaoke' | 'full'>('karaoke');
+  const [copiedLyrics, setCopiedLyrics] = useState(false);
   const activeLyricRef = useRef<HTMLParagraphElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -211,16 +222,6 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
     };
   }, [isPlaying]);
 
-  // Auto-scroll active synced lyric line
-  useEffect(() => {
-    if (rightTab === 'lyrics' && activeLyricRef.current) {
-      activeLyricRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
-  }, [currentTime, rightTab]);
-
   const activeLyricIndex = lyrics.synced.findIndex((line, i) => {
     const nextLine = lyrics.synced[i + 1];
     if (nextLine) {
@@ -228,6 +229,24 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
     }
     return currentTime >= line.time;
   });
+
+  // Auto-scroll active synced lyric line only when active line changes
+  useEffect(() => {
+    if (rightTab === 'lyrics' && lyricsViewMode === 'karaoke' && activeLyricRef.current) {
+      activeLyricRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [activeLyricIndex, rightTab, lyricsViewMode]);
+
+  const handleCopyLyrics = () => {
+    const textToCopy = lyrics.text || lyrics.synced.map((s) => s.text).join('\n');
+    if (!textToCopy) return;
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedLyrics(true);
+    setTimeout(() => setCopiedLyrics(false), 2000);
+  };
 
   // Derive album or movie soundtrack subtitle
   const albumSubtitle =
@@ -626,6 +645,47 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
                   Clear
                 </button>
               )}
+
+              {rightTab === 'lyrics' && (lyrics.text || lyrics.synced.length > 0) && (
+                <div className="flex items-center gap-1.5">
+                  {lyrics.synced.length > 0 && lyrics.text && (
+                    <button
+                      onClick={() => setLyricsViewMode(lyricsViewMode === 'karaoke' ? 'full' : 'karaoke')}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white transition-colors cursor-pointer border border-white/[0.06]"
+                      title={lyricsViewMode === 'karaoke' ? 'Switch to Full Text View' : 'Switch to Karaoke Sync'}
+                    >
+                      {lyricsViewMode === 'karaoke' ? (
+                        <>
+                          <FileText className="size-3 text-[#10B981]" />
+                          <span>Full Text</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="size-3 text-[#10B981]" />
+                          <span>Karaoke</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <button
+                    onClick={handleCopyLyrics}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white transition-colors cursor-pointer border border-white/[0.06]"
+                    title="Copy Lyrics to Clipboard"
+                  >
+                    {copiedLyrics ? (
+                      <>
+                        <Check className="size-3 text-[#10B981]" />
+                        <span className="text-[#10B981]">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="size-3 text-zinc-400" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* TAB 1: Clean Up Next Queue */}
@@ -707,34 +767,66 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
 
             {/* TAB 2: Synchronized Karaoke Lyrics */}
             {rightTab === 'lyrics' && (
-              <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5 text-center scrollbar-thin">
-                {lyrics.synced.length > 0 ? (
-                  lyrics.synced.map((line, idx) => {
-                    const isActive = idx === activeLyricIndex;
-                    return (
-                      <p
-                        key={idx}
-                        ref={isActive ? activeLyricRef : null}
-                        onClick={() => onSeek(line.time)}
-                        className={`cursor-pointer transition-all duration-200 text-sm sm:text-base font-semibold leading-relaxed ${
-                          isActive
-                            ? 'text-white scale-103 font-extrabold drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]'
-                            : 'text-zinc-500 hover:text-zinc-300'
-                        }`}
-                      >
-                        {line.text}
-                      </p>
-                    );
-                  })
+              <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-thin">
+                {lyrics.isLoading ? (
+                  <div className="flex flex-col items-center justify-center h-full text-zinc-400 space-y-3 animate-pulse py-16">
+                    <div className="size-12 rounded-2xl bg-[#10B981]/10 border border-[#10B981]/20 flex items-center justify-center text-[#10B981]">
+                      <Loader2 className="size-6 animate-spin" />
+                    </div>
+                    <p className="text-xs font-semibold text-white">Searching synchronized studio lyrics...</p>
+                    <p className="text-[11px] text-zinc-500">Querying LRCLIB, JioSaavn & Swaara Engine</p>
+                  </div>
+                ) : lyricsViewMode === 'karaoke' && lyrics.synced.length > 0 ? (
+                  <div className="space-y-4 text-center pb-8">
+                    {/* Status Pill */}
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[10px] text-zinc-400 font-mono mb-2">
+                      <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse" />
+                      <span>{lyrics.isSynced ? 'Studio Synchronized LRC' : 'Harmonic Timed Karaoke'}</span>
+                      {lyrics.provider && <span className="text-zinc-500">• {lyrics.provider}</span>}
+                    </div>
+
+                    {lyrics.synced.map((line, idx) => {
+                      const isActive = idx === activeLyricIndex;
+                      return (
+                        <p
+                          key={idx}
+                          ref={isActive ? activeLyricRef : null}
+                          onClick={() => onSeek(line.time)}
+                          className={`cursor-pointer transition-all duration-200 text-sm sm:text-base font-semibold leading-relaxed px-3 py-1.5 rounded-xl ${
+                            isActive
+                              ? 'text-white scale-103 font-extrabold drop-shadow-[0_0_14px_rgba(16,185,129,0.5)] bg-white/[0.04] border border-white/[0.06]'
+                              : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]'
+                          }`}
+                        >
+                          {line.text}
+                        </p>
+                      );
+                    })}
+                  </div>
                 ) : lyrics.text ? (
-                  <div className="text-zinc-400 whitespace-pre-line text-xs leading-relaxed text-left p-2 font-medium">
-                    {lyrics.text}
+                  <div className="space-y-4 pb-8">
+                    <div className="flex items-center justify-between pb-2 border-b border-white/[0.06] text-[11px] text-zinc-400">
+                      <span className="font-semibold text-white">Full Lyrics</span>
+                      <span className="font-mono text-[10px] text-zinc-500">
+                        {lyrics.provider || 'Swaara Studio Engine'}
+                      </span>
+                    </div>
+                    <div className="text-zinc-200 whitespace-pre-line text-sm leading-loose p-5 font-normal bg-white/[0.02] rounded-2xl border border-white/[0.04] selection:bg-[#10B981]/30">
+                      {lyrics.text}
+                    </div>
+                    <p className="text-[10px] text-zinc-500 text-center font-mono">
+                      Lyrics verified by Swaara Audio Processing Pipeline
+                    </p>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-zinc-400 space-y-3">
-                    <Mic2 className="size-8 text-zinc-600" />
-                    <p className="text-xs font-medium">No synced lyrics found for this track</p>
-                    <p className="text-[11px] text-zinc-500">Audio plays with 10-band DSP master sound</p>
+                  <div className="flex flex-col items-center justify-center h-full text-zinc-400 space-y-3 py-16">
+                    <div className="size-12 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-zinc-500">
+                      <Mic2 className="size-6 text-zinc-500" />
+                    </div>
+                    <p className="text-xs font-semibold text-white">No lyrics found for this track</p>
+                    <p className="text-[11px] text-zinc-500 max-w-[240px] text-center">
+                      Audio plays with 10-band DSP master sound
+                    </p>
                   </div>
                 )}
               </div>
