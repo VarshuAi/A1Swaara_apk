@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "name": "A1 Swaara",
+  "releaseDate": "2026-09-22",
+  "notes": "A1 Swaara Desktop Music Player — Initial Release",
+  "mandatory": false,
+  "asarUrl": "https://github.com/VarshuAi/A1Swaara_PC/releases/download/v1.0.0/app.asar",
+  "exeUrl": "https://github.com/VarshuAi/A1Swaara_PC/releases/download/v1.0.0/A1_Swaara.exe"
+}

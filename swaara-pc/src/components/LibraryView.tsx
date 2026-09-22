@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Heart,
   FolderDown,
@@ -51,6 +51,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   const [searchFilter, setSearchFilter] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setActiveTab(initialSubTab);
+  }, [initialSubTab]);
 
   const rawList = useMemo(() => {
     switch (activeTab) {
@@ -257,9 +261,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   <div className="col-span-6 flex items-center gap-3 truncate pr-3">
                     <img
                       src={track.artwork}
-                      alt={track.title}
+                      alt=""
+                      referrerPolicy="no-referrer"
                       loading="lazy"
                       className="size-8 rounded object-cover shrink-0 bg-[#101214]"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.opacity = '0';
+                      }}
                     />
                     <div className="truncate">
                       <p className="font-medium text-xs text-[#F5F5F5] group-hover:text-[#10B981] transition-colors truncate">

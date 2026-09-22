@@ -15,4 +15,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onMediaCommand: (callback) => {
     ipcRenderer.on('media-command', (event, cmd) => callback(cmd));
   },
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  onUpdateStatus: (callback) => {
+    ipcRenderer.on('update-status', (event, data) => callback(data));
+  },
 });

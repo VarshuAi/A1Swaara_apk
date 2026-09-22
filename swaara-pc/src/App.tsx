@@ -14,7 +14,7 @@ import { SongInsightsDrawer } from './components/SongInsightsDrawer';
 import { ArtistView } from './components/ArtistView';
 import { ContextMenu } from './components/ContextMenu';
 import { Track, ActiveTab, SyncedLyricLine, AlgorithmMode, SleepTimerOption } from './types/music';
-import { resolveTrackStream, fetchLyrics } from './services/api';
+import { resolveTrackStream, fetchLyrics, fetchRadioTracks } from './services/api';
 import { audioEngine, DEFAULT_PRESETS } from './services/audioEngine';
 import { getSmartNextTracks } from './services/algorithm';
 import * as storage from './services/storage';
@@ -224,7 +224,11 @@ export function App() {
         fetchLyrics(resolved).then((lyr) => setLyrics({ ...lyr, isLoading: false }));
       } catch (err) {
         console.error('Track playback failure:', err);
-        await audioEngine.playTrack(track);
+        try {
+          await audioEngine.playTrack(track);
+        } catch {
+          showToast('Could not load stream. Please check network connection.');
+        }
         setIsLoading(false);
       }
     } else {
@@ -237,6 +241,7 @@ export function App() {
         fetchLyrics(track).then((lyr) => setLyrics({ ...lyr, isLoading: false }));
       } catch (err) {
         console.error('Web playback failure:', err);
+        showToast('Playback error. Check audio source or connection.');
         setIsLoading(false);
       }
     }
@@ -321,6 +326,19 @@ export function App() {
     showToast(next ? 'Spatial 3D Audio: ON 🎧' : 'Spatial 3D Audio: OFF');
   };
 
+  const handleStartRadio = async (track: Track) => {
+    handlePlayTrack(track, false);
+    try {
+      const radioTracks = await fetchRadioTracks(track.id);
+      if (radioTracks && radioTracks.length > 0) {
+        setQueue(radioTracks);
+        showToast(`Infinite Radio: ${track.title}`);
+      }
+    } catch (err) {
+      console.warn('Failed to load radio queue:', err);
+    }
+  };
+
   const handleChangeSpeed = (speed: number) => {
     setPlaybackSpeed(speed);
     audioEngine.setPlaybackRate(speed);
@@ -398,6 +416,29 @@ export function App() {
       });
     }
   }, [handleNext, handlePrev]);
+
+  // OTA In-App Auto-Updater
+  useEffect(() => {
+    if (window.electronAPI?.onUpdateStatus) {
+      window.electronAPI.onUpdateStatus((data) => {
+        if (data.status === 'available') {
+          showToast(`⚡ New update v${data.remoteVersion || ''} found! Downloading OTA update...`);
+          window.electronAPI?.downloadUpdate?.();
+        } else if (data.status === 'downloading') {
+          if (data.percent !== undefined && data.percent % 25 === 0) {
+            showToast(`Downloading update... ${data.percent}%`);
+          }
+        } else if (data.status === 'downloaded') {
+          showToast(`Update ready! Restarting Swaara to apply...`);
+          setTimeout(() => {
+            window.electronAPI?.installUpdate?.();
+          }, 2500);
+        } else if (data.status === 'error' && data.error && !data.error.includes('404')) {
+          console.warn('OTA update notice:', data.error);
+        }
+      });
+    }
+  }, []);
 
   // Toggle Like
   const handleToggleLike = (trackToToggle?: Track) => {
@@ -495,11 +536,19 @@ export function App() {
           break;
         case 'ArrowLeft':
           e.preventDefault();
-          audioEngine.seek(currentTime - 5);
+          if (e.ctrlKey) {
+            handlePrev();
+          } else {
+            audioEngine.seek(currentTime - 5);
+          }
           break;
         case 'ArrowRight':
           e.preventDefault();
-          audioEngine.seek(currentTime + 5);
+          if (e.ctrlKey) {
+            handleNext();
+          } else {
+            audioEngine.seek(currentTime + 5);
+          }
           break;
         case 'ArrowUp':
           e.preventDefault();
@@ -901,6 +950,7 @@ export function App() {
           onToggleLike={handleToggleLike}
           onDownload={handleDownloadTrack}
           onOpenArtist={handleOpenArtist}
+          onStartRadio={handleStartRadio}
         />
       )}
 

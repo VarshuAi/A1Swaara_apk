@@ -21,6 +21,7 @@ import {
   Check,
   FileText,
   Sparkles,
+  Moon,
 } from 'lucide-react';
 import { Track, SyncedLyricLine, SleepTimerOption } from '../types/music';
 
@@ -107,6 +108,8 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
   onToggleSpatialAudio,
   playbackSpeed = 1.0,
   onChangeSpeed,
+  sleepTimerOption,
+  onSelectSleepTimer,
 }) => {
   const [rightTab, setRightTab] = useState<'lyrics' | 'queue' | 'info'>('lyrics');
   const [lyricsViewMode, setLyricsViewMode] = useState<'karaoke' | 'full'>('karaoke');
@@ -168,7 +171,11 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
         <img
           src={track.artwork}
           alt=""
+          referrerPolicy="no-referrer"
           className="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] object-cover blur-[140px] opacity-[0.06] pointer-events-none"
+          onError={(e) => {
+            (e.target as HTMLElement).style.display = 'none';
+          }}
         />
         <div className="absolute inset-0 bg-[#070809]/92" />
       </div>
@@ -203,7 +210,11 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
               <img
                 src={track.artwork}
                 alt={track.title}
+                referrerPolicy="no-referrer"
                 className="size-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.opacity = '0';
+                }}
               />
             </div>
           </div>
@@ -383,6 +394,38 @@ export const NowPlayingView: React.FC<NowPlayingViewProps> = ({
                   title="Playback Speed"
                 >
                   {playbackSpeed}x
+                </button>
+              )}
+
+              {onSelectSleepTimer && (
+                <button
+                  onClick={() => {
+                    const cycle: SleepTimerOption[] = [null, 15, 30, 45, 60, 'track_end'];
+                    const currentIdx = cycle.indexOf(sleepTimerOption ?? null);
+                    const next = cycle[(currentIdx + 1) % cycle.length];
+                    onSelectSleepTimer(next);
+                  }}
+                  className={`px-2 py-1 rounded text-xs transition-colors cursor-pointer flex items-center gap-1 ${
+                    sleepTimerOption
+                      ? 'text-[#10B981] bg-[#101214]'
+                      : 'text-[#9A9FA3] hover:text-[#F5F5F5]'
+                  }`}
+                  title={
+                    sleepTimerOption === 'track_end'
+                      ? 'Sleep Timer: End of Track'
+                      : sleepTimerOption
+                      ? `Sleep Timer: ${sleepTimerOption}m`
+                      : 'Sleep Timer: Off'
+                  }
+                >
+                  <Moon className="size-3.5" />
+                  <span>
+                    {sleepTimerOption === 'track_end'
+                      ? 'End'
+                      : sleepTimerOption
+                      ? `${sleepTimerOption}m`
+                      : 'Timer'}
+                  </span>
                 </button>
               )}
             </div>

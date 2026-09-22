@@ -139,6 +139,19 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             <ListPlus className="size-3.5" />
             <span>Add to Queue</span>
           </button>
+
+          {onStartRadio && (
+            <button
+              onClick={() => {
+                onStartRadio(track);
+                onClose();
+              }}
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/[0.04] transition-colors cursor-pointer text-left text-[#9A9FA3] hover:text-[#F5F5F5]"
+            >
+              <Radio className="size-3.5" />
+              <span>Start Radio</span>
+            </button>
+          )}
         </div>
 
         {/* Action Group 2: Library & Downloads */}

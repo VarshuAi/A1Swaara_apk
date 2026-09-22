@@ -161,8 +161,12 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
             >
               <img
                 src={currentTrack.artwork}
-                alt={currentTrack.title}
+                alt=""
+                referrerPolicy="no-referrer"
                 className="size-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.opacity = '0';
+                }}
               />
             </div>
 

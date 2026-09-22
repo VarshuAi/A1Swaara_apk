@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 const http = require('http');
+const { AutoUpdater } = require('./updater.cjs');
 
 // Set Application User Model ID for Windows Taskbar pinning & notifications
 if (process.platform === 'win32') {
@@ -16,10 +17,18 @@ if (!gotTheLock) {
   process.exit(0);
 }
 
+// Version & AutoUpdater state
+let appVersion = '1.0.0';
+try {
+  const pkg = require('../package.json');
+  if (pkg && pkg.version) appVersion = pkg.version;
+} catch (_) {}
+
 let mainWindow = null;
 let tray = null;
 let isMiniPlayer = false;
 let normalBounds = { width: 1280, height: 840 };
+let autoUpdater = null;
 
 // When user taps shortcut or launches exe again, focus existing window
 app.on('second-instance', () => {
@@ -93,6 +102,18 @@ function createWindow() {
     shell.openExternal(url);
     return { action: 'deny' };
   });
+
+  // Initialize OTA updater
+  autoUpdater = new AutoUpdater(mainWindow, appVersion);
+
+  // Background OTA update check (after 10s delay to allow instant startup)
+  setTimeout(() => {
+    if (mainWindow && !mainWindow.isDestroyed() && autoUpdater) {
+      autoUpdater.checkForUpdates().catch(err => {
+        console.warn('Silent background update check:', err.message);
+      });
+    }
+  }, 10000);
 }
 
 function createTray() {
@@ -306,4 +327,28 @@ ipcMain.on('open-downloads-folder', () => {
     fs.mkdirSync(musicDir, { recursive: true });
   }
   shell.openPath(musicDir);
+});
+
+// Over-The-Air (OTA) Auto-Updater Handlers
+ipcMain.handle('get-app-version', () => appVersion);
+
+ipcMain.handle('check-for-updates', async () => {
+  if (!autoUpdater) {
+    autoUpdater = new AutoUpdater(mainWindow, appVersion);
+  }
+  return await autoUpdater.checkForUpdates();
+});
+
+ipcMain.handle('download-update', async () => {
+  if (!autoUpdater) {
+    throw new Error('Updater not initialized');
+  }
+  return await autoUpdater.downloadUpdate();
+});
+
+ipcMain.handle('install-update', () => {
+  if (!autoUpdater) {
+    throw new Error('Updater not initialized');
+  }
+  autoUpdater.installAndRestart();
 });

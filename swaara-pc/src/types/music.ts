@@ -114,6 +114,11 @@ export interface ElectronAPI {
   downloadTrack: (payload: { url: string; filename?: string; title: string; artist: string }) => Promise<{ success: boolean; path?: string; error?: string }>;
   openDownloadsFolder: () => void;
   onMediaCommand?: (callback: (cmd: 'play-pause' | 'next' | 'previous') => void) => void;
+  checkForUpdates?: () => Promise<{ updateAvailable: boolean; remoteVersion?: string; notes?: string; error?: string }>;
+  downloadUpdate?: () => Promise<{ success: boolean; version?: string; downloading?: boolean }>;
+  installUpdate?: () => void;
+  getAppVersion?: () => Promise<string>;
+  onUpdateStatus?: (callback: (data: { status: string; percent?: number; remoteVersion?: string; error?: string }) => void) => void;
 }
 
 declare global {
