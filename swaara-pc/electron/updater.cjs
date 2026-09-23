@@ -2,7 +2,8 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { app, spawn } = require('electron');
+const { app } = require('electron');
+const { spawn } = require('child_process');
 
 const GITHUB_REPO = 'VarshuAi/A1Swaara_PC';
 const VERSION_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/version.json`;
