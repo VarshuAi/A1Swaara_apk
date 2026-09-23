@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, globalShortcut, Tray, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, globalShortcut, Tray, Menu, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
@@ -117,11 +117,22 @@ function createWindow() {
 }
 
 function createTray() {
-  const iconIco = path.join(__dirname, 'icon.ico');
-  const iconPng = path.join(__dirname, 'icon.png');
-  const trayIconPath = fs.existsSync(iconIco) ? iconIco : iconPng;
+  const rootDir = app.isPackaged ? path.join(process.resourcesPath, '..') : path.join(__dirname, '..');
+  const iconIco = path.join(rootDir, 'icon.ico');
+  const iconPng = path.join(rootDir, 'icon.png');
+  const localIco = path.join(__dirname, 'icon.ico');
+  const localPng = path.join(__dirname, 'icon.png');
+  const trayIconPath = fs.existsSync(iconIco)
+    ? iconIco
+    : fs.existsSync(iconPng)
+    ? iconPng
+    : fs.existsSync(localIco)
+    ? localIco
+    : fs.existsSync(localPng)
+    ? localPng
+    : null;
 
-  if (!fs.existsSync(trayIconPath)) return;
+  if (!trayIconPath) return;
 
   try {
     tray = new Tray(trayIconPath);
@@ -191,6 +202,27 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
+  // Guarantee CORS-free audio streaming and WebAudio DSP routing
+  if (session.defaultSession) {
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      const responseHeaders = Object.assign({}, details.responseHeaders);
+      responseHeaders['Access-Control-Allow-Origin'] = ['*'];
+      responseHeaders['Access-Control-Allow-Headers'] = ['*'];
+      responseHeaders['Access-Control-Allow-Methods'] = ['GET, HEAD, POST, OPTIONS'];
+      responseHeaders['Access-Control-Expose-Headers'] = ['Content-Length, Content-Range, Accept-Ranges'];
+      callback({ responseHeaders });
+    });
+
+    session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+      const requestHeaders = Object.assign({}, details.requestHeaders);
+      if (details.url.includes('googlevideo.com') || details.url.includes('saavncdn.com')) {
+        delete requestHeaders['Origin'];
+        delete requestHeaders['Referer'];
+      }
+      callback({ requestHeaders });
+    });
+  }
+
   createWindow();
   createTray();
 

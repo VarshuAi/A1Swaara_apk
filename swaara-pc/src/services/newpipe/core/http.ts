@@ -65,20 +65,19 @@ export class HttpClient {
    * In a browser, forbidden headers like Cookie, User-Agent, Origin trigger CORS preflight failures.
    */
   private static sanitizeHeaders(customHeaders: Record<string, string> = {}): Record<string, string> {
-    const isWeb = this.isBrowser();
+    const isRenderer = typeof window !== 'undefined';
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...customHeaders,
     };
 
-    if (!isWeb) {
-      headers['Cookie'] = this.CONSENT_COOKIE;
-    } else {
-      // Forbidden headers in browser fetch:
+    if (isRenderer) {
       delete headers['Cookie'];
       delete headers['User-Agent'];
       delete headers['Origin'];
       delete headers['Referer'];
+    } else {
+      headers['Cookie'] = this.CONSENT_COOKIE;
     }
 
     return headers;
@@ -203,7 +202,7 @@ export class HttpClient {
       // Fallback default visitor token if fetch fails
     }
 
-    // Default fallback visitor token
-    return 'CgtSQmxzMHAtOXJBUSjLm-vUBjIKCgJJThIEGgAgLw%3D%3D';
+    // Do not use stale hardcoded visitor token; omitting it allows VisionOS to extract unthrottled streams
+    return '';
   }
 }

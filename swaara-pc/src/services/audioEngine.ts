@@ -182,6 +182,7 @@ class AudioEngine {
 
       // Master Gain
       this.masterGain = this.audioCtx.createGain();
+      this.masterGain.gain.value = this.currentVolume;
 
       // Analyser Node for Spectrum Visualizer
       this.analyser = this.audioCtx.createAnalyser();
@@ -424,7 +425,17 @@ class AudioEngine {
         this.updateMediaSession(track);
         return;
       } catch (err) {
-        console.warn('HTML5 direct play failed, using studio background engine:', err);
+        console.warn('HTML5 direct play failed, attempting unadorned direct play:', err);
+        try {
+          this.audio.removeAttribute('crossorigin');
+          this.audio.src = track.streamUrl;
+          this.audio.load();
+          await this.audio.play();
+          this.updateMediaSession(track);
+          return;
+        } catch (innerErr) {
+          console.warn('Direct fallback failed, attempting studio background engine:', innerErr);
+        }
       }
     }
 
@@ -481,6 +492,9 @@ class AudioEngine {
     const clamped = Math.max(0, Math.min(1, vol));
     this.currentVolume = clamped;
     this.audio.volume = clamped;
+    if (this.masterGain) {
+      this.masterGain.gain.value = clamped;
+    }
     if (this.ytPlayer && this.isYtReady) {
       try {
         this.ytPlayer.setVolume(Math.round(clamped * 100));
