@@ -1,10 +1,10 @@
 {
-  "version": "1.0.5",
-  "versionCode": 6,
+  "version": "1.0.6",
+  "versionCode": 7,
   "minRequiredVersion": "1.0.0",
   "forceUpdate": true,
-  "title": "A1 Swaara v1.0.5 - Universal Background Blur & Adaptive Center Layout",
-  "changelog": "- Universal multi-tier background blur ensuring gorgeous, diffuse artwork hazing across all Android versions (API 23 to API 36+)\n- Dynamic mesh glow canvas and CPU StackBlur fallback for phones without RenderEffect\n- Adaptive player UI centering: horizontally and vertically centered layout across all screen ratios, foldables, and compact displays\n- Fixed control over-spreading on wide screens and prevented bottom row cutoff on phones with navigation bars",
-  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.5.apk",
-  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.5"
+  "title": "A1 Swaara v1.0.6 - Cloud Sync, Shared Playlists and Live Jam Rooms",
+  "changelog": "- Cloud Sync and Backup: Seamlessly backup and restore favorites, custom playlists, and song history to the cloud with anonymous device identity and device linking\n- Shareable Playlists: Publish playlists to generate 6-digit share codes (SWxxxx) and import friends playlists instantly\n- Listen Together (Live Jam Rooms): Real-time synchronized playback with friends using 6-digit room codes (JAMxxx)\n- Community Trending Charts: Crowdsourced song play tracking and real-time community leaderboard\n- Cloud Dynamic Config: Fallback stream proxies and broadcast announcements without needing app updates",
+  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.6.apk",
+  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.6"
 }
