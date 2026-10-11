@@ -1,10 +1,10 @@
 {
-  "version": "1.0.6",
-  "versionCode": 7,
+  "version": "1.0.7",
+  "versionCode": 8,
   "minRequiredVersion": "1.0.0",
   "forceUpdate": true,
-  "title": "A1 Swaara v1.0.6 - Cloud Sync, Shared Playlists and Live Jam Rooms",
-  "changelog": "- Cloud Sync and Backup: Seamlessly backup and restore favorites, custom playlists, and song history to the cloud with anonymous device identity and device linking\n- Shareable Playlists: Publish playlists to generate 6-digit share codes (SWxxxx) and import friends playlists instantly\n- Listen Together (Live Jam Rooms): Real-time synchronized playback with friends using 6-digit room codes (JAMxxx)\n- Community Trending Charts: Crowdsourced song play tracking and real-time community leaderboard\n- Cloud Dynamic Config: Fallback stream proxies and broadcast announcements without needing app updates",
-  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.6.apk",
-  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.6"
+  "title": "A1 Swaara v1.0.7 - Instagram Reels Trending Audio & Viral Sounds Integration",
+  "changelog": "- Instagram Reels Trending Shelf: Discover top viral audio tracks directly from Instagram Reels on your Home screen\n- Reels Audio Badges: Live view of viral reel counts (e.g. 12K reels) and trending indicator badges\n- Reels Search Tab: Direct search chip in Search screen to find viral sound clips\n- Full-Length Audio Bridge: Seamless bridge from 30-second Instagram sound bites to 320kbps full track streaming without cutoff\n- Stability and playback optimizations across cloud sync and live jam rooms",
+  "downloadUrl": "https://github.com/VarshuAi/A1Swaara_apk/raw/main/A1_Swaara_v1.0.7.apk",
+  "githubReleaseUrl": "https://github.com/VarshuAi/A1Swaara_apk/releases/tag/v1.0.7"
 }
